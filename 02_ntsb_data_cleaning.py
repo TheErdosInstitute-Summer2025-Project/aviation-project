@@ -112,7 +112,8 @@ def combine_phase_categories(data):
         'Pushback/Tow': 'Ground',
         'Post-Impact': 'Ground',
         'Unknown': 'Unknown',
-        'other/unknown': 'Unknown'
+        'other/unknown': 'Unknown',
+        np.nan: 'Unknown'
     }
 
     data['BroadPhaseofFlight'] = data['BroadPhaseofFlight'].apply(lambda x: phase_dict[x])
@@ -122,6 +123,7 @@ def combine_phase_categories(data):
 def format_aircraft_make_spelling(data):
     '''Combine varied spellings of the same aircraft make'''
 
+    data['acft_make'] = data['acft_make'].fillna('other/unknown')
     data['acft_make'] = data['acft_make'].str.lower()
 
     # list of makes representing more than 1% of the data 
@@ -171,8 +173,8 @@ def reduce_categories_fill_na(data, columns, threshold):
 
 if __name__ == '__main__':
     # Read args
-    infile = argv[0]
-    outfile = argv[1]
+    infile = argv[1]
+    outfile = argv[2]
 
     # Read data
     data = pd.read_csv(infile)
@@ -194,6 +196,7 @@ if __name__ == '__main__':
     data = combine_phase_categories(data)
     data = format_aircraft_make_spelling(data)
     data = reduce_categories_fill_na(data, categorical_features, 0.01)
+    # data = pd.get_dummies(data, columns=categorical_features)
 
     # Write data
     data.to_csv(outfile)
