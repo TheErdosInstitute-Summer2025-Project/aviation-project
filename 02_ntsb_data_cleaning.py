@@ -53,7 +53,17 @@ def drop_sparse_columns(data, threshold):
             data.drop(columns=col, inplace=True)
     
     return data
+def remove_already_processed_and_almost_all_same_columns(data):
+    # Already processed
+    data.drop(columns=['Aircraft_Key', 
+                    'ev_id', 
+                    #'finding_description'    # no longer in data
+                    'total_seats' # No longer need
+                    ], inplace=True)
 
+    # (Almost) all rows have same value
+    data.drop(columns=['certs_held', 'unmanned'], inplace=True)
+    return data
 
 def compute_injury_counts(data):
     '''Calculate missing aircraft-level injury data from event-level injury data'''
@@ -168,7 +178,39 @@ def reduce_categories_fill_na(data, columns, threshold):
 
     return data
 
+def compute_days_since_last_inspection(data):
+    '''
+    Compute the number of days since the last aircraft inspection.
+    Converts date columns to datetime and calculates the difference.
 
+    Outputs:
+        data: pandas DataFrame with new column 'days_since_insp' 
+              and old columns 'date_last_insp' and 'ev_date' dropped
+    '''
+
+    # Use proper datetime format to avoid parsing warnings
+    datetime_format = '%m/%d/%y %H:%M:%S'
+
+    data['insp_date'] = pd.to_datetime(
+        data['date_last_insp'].replace('other/unknown', np.nan),
+        format=datetime_format, errors='coerce'
+    )
+
+    data['event_date'] = pd.to_datetime(
+        data['ev_date'],
+        format=datetime_format, errors='coerce'
+    )
+
+    # Calculate days between inspection and event
+    data['days_since_insp'] = (data['event_date'] - data['insp_date']).dt.days
+
+    # Replace negative values (future inspections) with 0
+    data.loc[data['days_since_insp'] < 0, 'days_since_insp'] = 0
+
+    # Drop original date columns
+    data = data.drop(columns=['date_last_insp', 'ev_date'])
+
+    return data
 #########################
 
 if __name__ == '__main__':
@@ -190,16 +232,18 @@ if __name__ == '__main__':
     # Clean data
     data = drop_rows_missing_injuries(data)
     data = drop_sparse_columns(data, 0.8)
+    data = remove_already_processed_and_almost_all_same_columns(data)
     data = compute_injury_counts(data)
     data = compute_injury_proportions(data)
     data = impute_engines(data)
     data = combine_phase_categories(data)
     data = format_aircraft_make_spelling(data)
     data = reduce_categories_fill_na(data, categorical_features, 0.01)
-    # data = pd.get_dummies(data, columns=categorical_features)
+    data = compute_days_since_last_inspection(data)
+    data = pd.get_dummies(data, columns=categorical_features)
 
     # Write data
-    data.to_csv(outfile)
+    data.to_csv(outfile, index_label=False)
 
 
 
