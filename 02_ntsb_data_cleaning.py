@@ -53,6 +53,8 @@ def drop_sparse_columns(data, threshold):
             data.drop(columns=col, inplace=True)
     
     return data
+    
+    
 def remove_already_processed_and_almost_all_same_columns(data):
     # Already processed
     data.drop(columns=['Aircraft_Key', 
@@ -64,6 +66,7 @@ def remove_already_processed_and_almost_all_same_columns(data):
     # (Almost) all rows have same value
     data.drop(columns=['certs_held', 'unmanned'], inplace=True)
     return data
+
 
 def compute_injury_counts(data):
     '''Calculate missing aircraft-level injury data from event-level injury data'''
@@ -86,7 +89,6 @@ def compute_injury_counts(data):
 
 def compute_injury_proportions(data):
     '''Calculate the proportion of people onboard in each injury category'''
-    #TODO: update this with just the target(s) we actually use when we've finalized the model
 
     data['acft_prop_inj_n'] =  data['acft_none_count'] / data['acft_total_person_count']
     data['acft_prop_inj_m'] =  data['acft_minor_count'] / data['acft_total_person_count']
@@ -178,6 +180,7 @@ def reduce_categories_fill_na(data, columns, threshold):
 
     return data
 
+
 def compute_days_since_last_inspection(data):
     '''
     Compute the number of days since the last aircraft inspection.
@@ -212,6 +215,7 @@ def compute_days_since_last_inspection(data):
 
     return data
 
+
 def change_to_numeric_latitude_and_longitude(data):
     for i in ['latitude','longitude']:
         data[i] = data[i].replace('other/unknown', np.nan)
@@ -221,6 +225,8 @@ def change_to_numeric_latitude_and_longitude(data):
     data['latitude'] = data['latitude'].str[:-1].astype(int)
     data['longitude'] = data['longitude'].str[:-1].astype(int)
     return data
+    
+    
 #########################
 
 if __name__ == '__main__':
