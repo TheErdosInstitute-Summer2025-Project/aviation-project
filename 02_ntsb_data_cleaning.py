@@ -211,6 +211,16 @@ def compute_days_since_last_inspection(data):
     data = data.drop(columns=['date_last_insp', 'ev_date'])
 
     return data
+
+def change_to_numeric_latitude_and_longitude(data):
+    for i in ['latitude','longitude']:
+        data[i] = data[i].replace('other/unknown', np.nan)
+    data = data.dropna().reset_index()
+
+    # Strip last character (N/S or E/W) and convert to int
+    data['latitude'] = data['latitude'].str[:-1].astype(int)
+    data['longitude'] = data['longitude'].str[:-1].astype(int)
+    return data
 #########################
 
 if __name__ == '__main__':
@@ -240,6 +250,7 @@ if __name__ == '__main__':
     data = format_aircraft_make_spelling(data)
     data = reduce_categories_fill_na(data, categorical_features, 0.01)
     data = compute_days_since_last_inspection(data)
+    # data = change_to_numeric_latitude_and_longitude(data)
     data = pd.get_dummies(data, columns=categorical_features)
 
     # Write data
