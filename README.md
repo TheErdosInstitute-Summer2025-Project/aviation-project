@@ -4,13 +4,18 @@
 
 
 ## 📜 Table of Contents
-- [📖 Project Overview](#-project-overview)
-- [📊 Dataset Collection & Cleaning](#-data-collection--cleaning)
-- [✨ Exploratory Data Analysis](#-exploratory-data-analysis)
-- [⚙️ Methodology & Analysis Pipeline](#️-methodology--analysis-pipeline)
-- [📈 Results](#-results)
-- [🚀 Conclusion](#-conclusion)
-- [🏗️ Future Work](#️-future-work)
+- [🎯 Aviation Safety Predictive Analysis](#-aviation-safety-predictive-analysis)
+  - [📜 Table of Contents](#-table-of-contents)
+  - [📖 Project Overview](#-project-overview)
+    - [**Stakeholders**](#stakeholders)
+    - [**Key Performance Indicators (KPIs)**](#key-performance-indicators-kpis)
+  - [📊 Dataset Collection \& Cleaning](#-dataset-collection--cleaning)
+  - [✨Exploratory Data Analysis](#exploratory-data-analysis)
+  - [](#)
+  - [⚙️ Methodology \& Analysis Pipeline](#️-methodology--analysis-pipeline)
+  - [📈 Results](#-results)
+  - [🚀  Conclusion](#--conclusion)
+  - [🏗️ Future Work](#️-future-work)
 
 ---
 
@@ -71,7 +76,7 @@ Key preprocessing steps:
 ## ✨Exploratory Data Analysis
 
 **Add EDA plots**
-
+![Accident Map, 2000-2025](image.png)
 ---
 
 ## ⚙️ Methodology & Analysis Pipeline
