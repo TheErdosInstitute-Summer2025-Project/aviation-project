@@ -12,12 +12,11 @@
 # - Feature engineering
 #     - Calculate the number of people onboard and proportions of each injury category
 
-from sys import argv
 import pandas as pd
 import numpy as np
 
 
-def drop_rows_missing_injuries(data):
+def drop_rows_missing_injuries_or_location(data):
     '''Drop rows of planes with missing injury data'''
 
     # Drop rows with unknown event injury totals (~20 rows in the training data)
@@ -31,10 +30,13 @@ def drop_rows_missing_injuries(data):
             # Drop event with >= 1 aircraft with unknowable injury counts
             data = data[~(data['event_key'].str.startswith(ev[:-1]))] 
 
+    # Drop rows with unknown latitude / longitude
+    data = data[~data['latitude'].isna()]
+
     return data
 
 
-def drop_sparse_columns(data, threshold):
+def drop_sparse_columns(data_tr, data_val, data_te, threshold):
     '''
     Drops columns from data that do not contain at least a given proportion of non-empty entries
     
@@ -44,15 +46,17 @@ def drop_sparse_columns(data, threshold):
     Outputs
         data: same DataFrame with appropriate columns dropped
     '''
-    for col in data.columns:
+    for col in data_tr.columns:
         # calculate proportion of na entries in col
-        prop_na = data[col].isna().sum() / len(data)
+        prop_na = data_tr[col].isna().sum() / len(data_tr)
         
         # drop col if the column is too sparse
         if prop_na > 1 - threshold:
-            data.drop(columns=col, inplace=True)
-    
-    return data
+            data_tr.drop(columns=col, inplace=True)
+            data_val.drop(columns=col, inplace=True)
+            data_te.drop(columns=col, inplace=True)
+
+    return data_tr, data_val, data_te
     
     
 def remove_already_processed_and_almost_all_same_columns(data):
@@ -63,8 +67,8 @@ def remove_already_processed_and_almost_all_same_columns(data):
                     # 'total_seats' # No longer need
                     ], inplace=True)
 
-    # (Almost) all rows have same value
-    # data.drop(columns=['certs_held', 'unmanned'], inplace=True)
+    #(Almost) all rows have same value
+    data.drop(columns=['certs_held', 'unmanned'], inplace=True)
     return data
 
 
@@ -98,9 +102,7 @@ def compute_injury_proportions(data):
 
 
 def impute_engines(data):
-    '''Impute value 1 into 'num_eng' if there are at most 15 people onboard, impute 2 otherwise
-    #TODO: be fancier and do this in a pipeline with logistic regression
-    '''
+    '''Impute value 1 into 'num_eng' if there are at most 15 people onboard, impute 2 otherwise'''
     data.loc[(data['num_eng'].isna())& (data['acft_total_person_count']<=15), 'num_eng'] = 1
     data.loc[(data['num_eng'].isna())& (data['acft_total_person_count']>15), 'num_eng'] = 2
 
@@ -153,32 +155,31 @@ def format_aircraft_make_spelling(data):
     return data
 
 
-def reduce_categories_fill_na(data, columns, threshold):
+def reduce_categories_fill_na(data_tr, data_val, data_te, columns, threshold):
     '''
     For each of the specified columns, find the values that occur with frequency lower than the threshold,
     and replace these values and missing values by 'other/unknown'.
     This is only intended for categorical variables
     
     Inputs
-        data: pandas DataFrame
+        data_tr, data_val, data_te: pandas DataFrames, train/validation/test sets
         columns: list of column names to simplify
         threshold: float in [0,1], frequency threshold for removing 
     Outputs
-        data: pandas DataFrame
+        data_tr, data_val, data_te
     '''
 
-    freq_thresh = threshold * len(data)
+    freq_thresh = threshold * len(data_tr)
 
     for col in columns:
-        counts = data[col].value_counts()
-        
-        for i in counts.index:
-            if counts[i] < freq_thresh:
-                data.loc[data[col]==i, col] = 'other/unknown'
-        
-        data.loc[data[col].isna(), col] = 'other/unknown'
+        counts = data_tr[col].value_counts()
+        safe_vals = [str(i) for i in counts.index if counts[i] >= freq_thresh]
 
-    return data
+        data_tr.loc[~data_tr[col].isin(safe_vals), col] = 'other/unknown'    
+        data_val.loc[~data_val[col].isin(safe_vals), col] = 'other/unknown'        
+        data_te.loc[~data_te[col].isin(safe_vals), col] = 'other/unknown'
+
+    return data_tr, data_val, data_te
 
 
 def compute_days_since_last_inspection(data):
@@ -214,54 +215,53 @@ def compute_days_since_last_inspection(data):
     data = data.drop(columns=['date_last_insp', 'ev_date'])
 
     return data
-
-
-def change_to_numeric_latitude_and_longitude(data):
-    for i in ['latitude','longitude']:
-        data[i] = data[i].replace('other/unknown', np.nan)
-    data = data.dropna().reset_index()
-
-    # Strip last character (N/S or E/W) and convert to int
-    data['latitude'] = data['latitude'].str[:-1].astype(int)
-    data['longitude'] = data['longitude'].str[:-1].astype(int)
-    return data
     
     
 #########################
 
 if __name__ == '__main__':
-    # Read args
-    infile = argv[1]
-    outfile = argv[2]
-
     # Read data
-    data = pd.read_csv(infile)
+    data_tr = pd.read_csv('data/ntsb_processed/master_train.csv')
+    data_val = pd.read_csv('data/ntsb_processed/master_val.csv')
+    data_te = pd.read_csv('data/ntsb_processed/master_test.csv')
 
     # Select categorical features to clean
     categorical_features = ['light_cond', 'BroadPhaseofFlight', 'eng_type', 'far_part', 
                             'acft_make', 'acft_category','homebuilt', 'fixed_retractable', 
                             'second_pilot']
     # Note: intentionally omitted 'ntsb_no', 'ev_highest_injury', 'Aircraft_ID', 'event_key', 
-    #       'damage', 'acft_model'
+    #       'damage', 'ev_id'
     # TODO: update this if needed
 
-    # Clean data
-    data = drop_rows_missing_injuries(data)
-    data = drop_sparse_columns(data, 0.8)
-    data = remove_already_processed_and_almost_all_same_columns(data)
-    data = compute_injury_counts(data)
-    data = compute_injury_proportions(data)
-    data = impute_engines(data)
-    data = combine_phase_categories(data)
-    data = format_aircraft_make_spelling(data)
-    data = reduce_categories_fill_na(data, categorical_features, 0.01)
-    data = compute_days_since_last_inspection(data)
-    # data = change_to_numeric_latitude_and_longitude(data)
-    data = pd.get_dummies(data, columns=categorical_features)
+    ## Clean data
+    # This loop applies the same functions to each of the training, validation, and test sets
+    dfs = [data_tr, data_val, data_te]
+    for i, data in enumerate(dfs):
+        data = drop_rows_missing_injuries_or_location(data)
+        data = remove_already_processed_and_almost_all_same_columns(data)
+        data = compute_injury_counts(data)
+        data = compute_injury_proportions(data)
+        data = impute_engines(data)
+        data = combine_phase_categories(data)
+        data = format_aircraft_make_spelling(data)
+        data = compute_days_since_last_inspection(data)
+        dfs[i] = data.copy()
+    data_tr, data_val, data_te = dfs[0], dfs[1], dfs[2]
 
-    # Write data
-    data.to_csv(outfile, index_label=False)
+    # Cleaning that depends on frequency of NAs / values
+    # All three sets are cleaned together because 
+    data_tr, data_val, data_te = drop_sparse_columns(data_tr, data_val, data_te, 0.8)
+    data_tr, data_val, data_te = reduce_categories_fill_na(data_tr, data_val, data_te, categorical_features, 0.01)
 
+    # Create dummies
+    data_tr = pd.get_dummies(data_tr, columns=categorical_features)
+    data_val = pd.get_dummies(data_val, columns=categorical_features)
+    data_te = pd.get_dummies(data_te, columns=categorical_features)
+
+    # Write data to files
+    data_tr.to_csv('data/ntsb_processed/ntsb_train_cleaned.csv', index=False)
+    data_val.to_csv('data/ntsb_processed/ntsb_val_cleaned.csv', index=False)
+    data_te.to_csv('data/ntsb_processed/ntsb_test_cleaned.csv', index=False)
 
 
 
