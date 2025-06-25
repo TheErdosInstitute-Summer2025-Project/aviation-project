@@ -36,27 +36,27 @@ def drop_rows_missing_injuries_or_location(data):
     return data
 
 
-def drop_sparse_columns(data_tr, data_val, data_te, threshold):
+def drop_sparse_columns(data, threshold):
     '''
-    Drops columns from data that do not contain at least a given proportion of non-empty entries
+    Drops columns from data where the train data does not contain at least a given proportion of non-empty entries
     
     Inputs
-        data: pandas DataFrame
+        data: dictionary {'train':data_tr, 'val':data_val, 'test':data_te} with train/validation/test datasets
         threshold: float in [0,1], all columns with less than this proportion of non-empty entries are dropped
     Outputs
-        data: same DataFrame with appropriate columns dropped
+        data
     '''
-    for col in data_tr.columns:
-        # calculate proportion of na entries in col
-        prop_na = data_tr[col].isna().sum() / len(data_tr)
+    tr = 'train'
+    for col in data[tr].columns:
+        # proportion of na entries in the column, in the training set
+        prop_na = data[tr][col].isna().sum() / len(data[tr])
         
-        # drop col if the column is too sparse
+        # drop col from each dataset if the column is too sparse in the training set
         if prop_na > 1 - threshold:
-            data_tr.drop(columns=col, inplace=True)
-            data_val.drop(columns=col, inplace=True)
-            data_te.drop(columns=col, inplace=True)
+            for key in data.keys():
+                data[key].drop(columns=col, inplace=True)
 
-    return data_tr, data_val, data_te
+    return data
     
     
 def remove_already_processed_and_almost_all_same_columns(data):
@@ -155,31 +155,32 @@ def format_aircraft_make_spelling(data):
     return data
 
 
-def reduce_categories_fill_na(data_tr, data_val, data_te, columns, threshold):
+def reduce_categories_fill_na(data, columns, threshold):
     '''
     For each of the specified columns, find the values that occur with frequency lower than the threshold,
     and replace these values and missing values by 'other/unknown'.
     This is only intended for categorical variables
     
     Inputs
-        data_tr, data_val, data_te: pandas DataFrames, train/validation/test sets
+        data: dictionary {'train':data_tr, 'val':data_val, 'test':data_te} with train/validation/test datasets
         columns: list of column names to simplify
         threshold: float in [0,1], frequency threshold for removing 
     Outputs
-        data_tr, data_val, data_te
+        data
     '''
-
-    freq_thresh = threshold * len(data_tr)
+    tr='train'
+    freq_thresh = threshold * len(data[tr])
 
     for col in columns:
-        counts = data_tr[col].value_counts()
-        safe_vals = [str(i) for i in counts.index if counts[i] >= freq_thresh]
+        # Find frequent values in col of training data
+        counts = data[tr][col].value_counts()
+        freq_vals = [str(i) for i in counts.index if counts[i] >= freq_thresh]
+        
+        # Replace infrequent values
+        for key in data.keys():
+            data[key].loc[~data[key][col].isin(freq_vals), col] = 'other/unknown'    
 
-        data_tr.loc[~data_tr[col].isin(safe_vals), col] = 'other/unknown'    
-        data_val.loc[~data_val[col].isin(safe_vals), col] = 'other/unknown'        
-        data_te.loc[~data_te[col].isin(safe_vals), col] = 'other/unknown'
-
-    return data_tr, data_val, data_te
+    return data
 
 
 def compute_days_since_last_inspection(data):
@@ -220,10 +221,16 @@ def compute_days_since_last_inspection(data):
 #########################
 
 if __name__ == '__main__':
-    # Read data
-    data_tr = pd.read_csv('data/ntsb_processed/master_train.csv')
-    data_val = pd.read_csv('data/ntsb_processed/master_val.csv')
-    data_te = pd.read_csv('data/ntsb_processed/master_test.csv')
+    # Create dictionary to store train/validation/test data
+    # This will be useful for applying the same function to each dataset in a loop
+    tr = 'train'
+    val = 'val'
+    te = 'test'
+    data = {tr:None, val:None, te:None}
+
+    # Read the three data sets
+    for key in data.keys():
+        data[key] = pd.read_csv('data/ntsb_processed/master_'+key+'.csv')
 
     # Select categorical features to clean
     categorical_features = ['light_cond', 'BroadPhaseofFlight', 'eng_type', 'far_part', 
@@ -235,33 +242,25 @@ if __name__ == '__main__':
 
     ## Clean data
     # This loop applies the same functions to each of the training, validation, and test sets
-    dfs = [data_tr, data_val, data_te]
-    for i, data in enumerate(dfs):
-        data = drop_rows_missing_injuries_or_location(data)
-        data = remove_already_processed_and_almost_all_same_columns(data)
-        data = compute_injury_counts(data)
-        data = compute_injury_proportions(data)
-        data = impute_engines(data)
-        data = combine_phase_categories(data)
-        data = format_aircraft_make_spelling(data)
-        data = compute_days_since_last_inspection(data)
-        dfs[i] = data.copy()
-    data_tr, data_val, data_te = dfs[0], dfs[1], dfs[2]
+    for key in data.keys():
+        data[key] = drop_rows_missing_injuries_or_location(data[key])
+        data[key] = remove_already_processed_and_almost_all_same_columns(data[key])
+        data[key] = compute_injury_counts(data[key])
+        data[key] = compute_injury_proportions(data[key])
+        data[key] = impute_engines(data[key])
+        data[key] = combine_phase_categories(data[key])
+        data[key] = format_aircraft_make_spelling(data[key])
+        data[key] = compute_days_since_last_inspection(data[key])
 
     # Cleaning that depends on frequency of NAs / values
     # All three sets are cleaned together because 
-    data_tr, data_val, data_te = drop_sparse_columns(data_tr, data_val, data_te, 0.8)
-    data_tr, data_val, data_te = reduce_categories_fill_na(data_tr, data_val, data_te, categorical_features, 0.01)
+    data = drop_sparse_columns(data, 0.8)
+    data = reduce_categories_fill_na(data, categorical_features, 0.01)
 
-    # Create dummies
-    data_tr = pd.get_dummies(data_tr, columns=categorical_features)
-    data_val = pd.get_dummies(data_val, columns=categorical_features)
-    data_te = pd.get_dummies(data_te, columns=categorical_features)
-
-    # Write data to files
-    data_tr.to_csv('data/ntsb_processed/ntsb_train_cleaned.csv', index=False)
-    data_val.to_csv('data/ntsb_processed/ntsb_val_cleaned.csv', index=False)
-    data_te.to_csv('data/ntsb_processed/ntsb_test_cleaned.csv', index=False)
+    # Create dummies + write to file
+    for key in data.keys():
+        data[key] = pd.get_dummies(data[key], columns=categorical_features)
+        data[key].to_csv('data/ntsb_processed/ntsb_'+key+'_cleaned.csv', index=False)
 
 
 
