@@ -221,18 +221,18 @@ def compute_days_since_last_inspection(data):
 #########################
 
 if __name__ == '__main__':
-    # Create dictionary to store train/validation/test data
+    ### Create dictionary to store train/validation/test data
     # This will be useful for applying the same function to each dataset in a loop
     tr = 'train'
     val = 'val'
     te = 'test'
     data = {tr:None, val:None, te:None}
 
-    # Read the three data sets
+    ### Read the three data sets
     for key in data.keys():
         data[key] = pd.read_csv('data/ntsb_processed/master_'+key+'.csv')
 
-    # Select categorical features to clean
+    ### Select categorical features to clean
     categorical_features = ['light_cond', 'BroadPhaseofFlight', 'eng_type', 'far_part', 
                             'acft_make', 'acft_category','homebuilt', 'fixed_retractable', 
                             'second_pilot']
@@ -240,7 +240,7 @@ if __name__ == '__main__':
     #       'damage', 'ev_id'
     # TODO: update this if needed
 
-    ## Clean data
+    ### Clean data
     # This loop applies the same functions to each of the training, validation, and test sets
     for key in data.keys():
         data[key] = drop_rows_missing_injuries_or_location(data[key])
@@ -252,15 +252,13 @@ if __name__ == '__main__':
         data[key] = format_aircraft_make_spelling(data[key])
         data[key] = compute_days_since_last_inspection(data[key])
 
-    # Cleaning that depends on frequency of NAs / values
-    # All three sets are cleaned together because 
+    ### Data cleaning that depends on frequency of NAs / values
+    # All three sets are cleaned together because the modifications must rely only on the training data
+    # and not on the validation or test data
     data = drop_sparse_columns(data, 0.8)
     data = reduce_categories_fill_na(data, categorical_features, 0.01)
 
-    # Create dummies + write to file
+    ### Create dummies + write to file
     for key in data.keys():
         data[key] = pd.get_dummies(data[key], columns=categorical_features)
         data[key].to_csv('data/ntsb_processed/ntsb_'+key+'_cleaned.csv', index=False)
-
-
-
