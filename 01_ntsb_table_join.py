@@ -24,26 +24,29 @@ def read_engines(filename):
 
 def read_aircraft(filename):
     '''Read aircraft data'''
-    aircraft = pd.read_csv(filename, usecols=['ev_id',
-                                              'Aircraft_Key',
-                                              'acft_year',
-                                              'acft_make',
-                                              'acft_category',
-                                              'homebuilt',
-                                              'num_eng',
-                                              'fixed_retractable',
-                                              'date_last_insp',
-                                              'fuel_on_board',
-                                              'far_part',
-                                              'unmanned',
-                                              'second_pilot',
-                                              'certs_held',  
-                                              'oprtng_cert',
-                                              'oper_cert',
-                                              'rwy_len',
-                                              'rwy_width',
-                                              'damage',
-                                              'evacuation']) # Extract relevant columns
+    aircraft = pd.read_csv(filename,usecols=['ev_id',
+                                            'Aircraft_Key',
+                                            'far_part',
+                                            'damage',
+                                            'acft_make',
+                                            'acft_category',
+                                            'homebuilt',
+                                            'total_seats',
+                                            'num_eng',
+                                            'fixed_retractable',
+                                            'date_last_insp',
+                                            'owner_acft',
+                                            'certs_held',    
+                                            'oprtng_cert',
+                                            'oper_cert',
+                                            'second_pilot',
+                                            'evacuation',
+                                            'rwy_len',
+                                            'rwy_width',
+                                            'acft_year',
+                                            'fuel_on_board',
+                                            'unmanned']    
+                                            ) # Extract Relevant Columns
     aircraft['event_key'] = aircraft['ev_id'].astype(str) + '_' + aircraft['Aircraft_Key'].astype(str) # Create event key 
     
     return aircraft
@@ -107,7 +110,7 @@ def read_phase(filename):
     return phase
 
 
-def read_events(events_filename, phase_filename):
+def read_events(events_filename):
     events = pd.read_csv(events_filename,usecols=['ev_id',
                                                             'ntsb_no',
                                                             'ev_country',
@@ -145,51 +148,33 @@ def read_events(events_filename, phase_filename):
     }
     events.rename(columns=new_names, inplace=True)
 
-    return events
+    return events.copy()
 
 
 def merge_data(engines, aircraft, injuries, events, phase):
     #TODO finish cleaning this up
     '''DOCSTRING'''
 
+    tables = pd.merge(engines,aircraft,on=['event_key','ev_id','Aircraft_Key'],how='left') # Join on all 3 to avoid _x and _y duplicate columns.  Also ensures correct specification.
+    tables = pd.merge(tables,injuries,on=['event_key','ev_id','Aircraft_Key'],how='left') # Join "injuries" data as well.
+    tables['Aircraft_ID'] = tables.groupby('ev_id').cumcount() + 1 # Some events start at 2 - this line creates a new Aircraft Key that is uniform across all coding schemes.
+    tables['event_key'] = tables['ev_id'].astype(str) + '_' + tables['Aircraft_ID'].astype(str) # Resets the "event_key" variable to match our adjusted aircraft ID
 
-    ### 1. Merge engine, aircraft, and injuries data
-    # Joining on 'event_key','ev_id', and'Aircraft_Key' avoids _x and _y duplicate columns 
-    # and ensures correct specification.
-    tables = pd.merge(engines,aircraft,on=['event_key','ev_id','Aircraft_Key'],how='left') 
-    tables = pd.merge(tables,injuries,on=['event_key','ev_id','Aircraft_Key'],how='left')
-
-    # Creates a new Aircraft Key that is uniform across all coding schemes. (Some events start at 2)
-    tables['Aircraft_ID'] = tables.groupby('ev_id').cumcount() + 1 
-    
-    # Resets the "event_key" variable to match our adjusted aircraft ID
-    tables['event_key'] = tables['ev_id'].astype(str) + '_' + tables['Aircraft_ID'].astype(str) 
-
-    # Counts how many unique values of "Aircraft_ID" per event - need this to tell "events" set where to duplicate
-    aircraft_counts = pd.DataFrame(tables.groupby('ev_id')['Aircraft_ID'].count()).reset_index() 
+    aircraft_counts = pd.DataFrame(tables.groupby('ev_id')['Aircraft_ID'].count()).reset_index() # Counts how many unique values of "Aircraft_ID" per event - need this to tell "events" set where to duplicate
     aircraft_counts.rename(columns={'Aircraft_ID':'aircraft_count'},inplace=True)
+    aircraft_counts['aircraft_count'] = aircraft_counts['aircraft_count'].fillna(1) # Fill in missing - if no aircraft info, assume 1 (true for most)
 
-    # Fill in missing - if no aircraft info, assume 1 (true for most)
-    aircraft_counts['aircraft_count'] = aircraft_counts['aircraft_count'].fillna(1) 
+    data = pd.merge(events, phase, how='left', on=['ntsb_no'])
 
-    ### 2. Merge events and phase data
-    data= pd.merge(events, phase, how='left', on=['ntsb_no']) # Move this into merge_data
+    df = pd.merge(data,aircraft_counts,on='ev_id',how='left') # Concatenates "aircraft count" var to dataset, will indicate how many replicate rows to generate
+    df['aircraft_count'] = df['aircraft_count'].fillna(1) # Some events were not in any of the 3 supplemental sets - set aircraft count as 1 for these
 
-    # Concatenates "aircraft count" var to dataset, will indicate how many replicate rows to generate
-    df = pd.merge(data,aircraft_counts,on='ev_id',how='left')
+    df_repeated = df.loc[df.index.repeat(df['aircraft_count'])].copy() # Creates repeated rows based on # of aircraft (indicated in column we created)
 
-    # Some events were not in any of the 3 supplemental sets - set aircraft count as 1 for these 
-    df['aircraft_count'] = df['aircraft_count'].fillna(1) 
+    df_repeated['Aircraft_ID'] = df_repeated.groupby('ev_id').cumcount() + 1 # Re-creates aircraft ID in the event data so we can join the individual aircraft from the tables dataset
+    df_repeated['event_key'] = df_repeated['ev_id'].astype(str) + '_' + df_repeated['Aircraft_ID'].astype(str) # Re-creates "event_key" for same reason.
 
-    # Creates repeated rows based on # of aircraft (indicated in column we created)
-    df_repeated = df.loc[df.index.repeat(df['aircraft_count'])].copy() 
-
-    # Re-creates Aircraft_ID and event_key in the event data so we can join the individual aircraft from the tables dataset
-    df_repeated['Aircraft_ID'] = df_repeated.groupby('ev_id').cumcount() + 1 
-    df_repeated['event_key'] = df_repeated['ev_id'].astype(str) + '_' + df_repeated['Aircraft_ID'].astype(str)
-
-    # Joins "event" dataset with supplemental sets.
-    merged = df_repeated.merge(tables, on=['event_key','ev_id','Aircraft_ID'], how='left') 
+    merged = df_repeated.merge(tables, on=['event_key','ev_id','Aircraft_ID'], how='left') # Joins "event" dataset with supplemental sets.
 
     return merged
 
@@ -221,9 +206,9 @@ if __name__ == '__main__':
     ### 1. Read data
     engines = read_engines('data/ntsb_raw/ntsb_engines.csv')
     aircraft = read_aircraft('data/ntsb_raw/ntsb_aircraft.csv')
-    injuries = read_injuries('data/ntsb_raw/ntsb_aircraft.csv')
+    injuries = read_injuries('data/ntsb_raw/ntsb_injuries.csv')
     phase = read_phase('data/ntsb_raw/ntsb_from_carol.csv')
-    events = read_events('data/ntsb_raw/ntsb_aircraft.csv')
+    events = read_events('data/ntsb_raw/ntsb_events.csv')
 
     ### 2. Merge data into a single DataFrame
     merged = merge_data(engines, aircraft, injuries, phase, events)
@@ -231,15 +216,11 @@ if __name__ == '__main__':
     ### 3. Restrict data to the scope of our problem:
     #      - Accidents
     #      - In the USA
-    #      - Before 2022  #TODO change to June 2022 if it's not too big a pain
     merged = merged[(merged['ev_country']=="USA") & (merged['ev_type']=="ACC")]
     merged.loc[merged['damage'].isna(),'damage'] = 'UNK'
 
     data = merged[merged['ev_year'] < 2022]
     data = data.reset_index().drop(columns=['index'])
-
-    # Create post_covid dataset, needed for timeseries analysis
-    post_covid = merged[merged['ev_year'] >= 2020]
 
     ### 4. Train / validation / test split
     #       - Stratified by damage level
@@ -247,7 +228,6 @@ if __name__ == '__main__':
     data_train, data_val, data_test = stratified_group_split(data, strat_col='damage', group_col='ev_id')
 
     ### 5. Write data to files 
-    data_train.to_csv('../data/ntsb_processed/master_train.csv', index=False)
-    data_val.to_csv('../data/ntsb_processed/master_val.csv', index=False)
-    data_test.to_csv('../data/ntsb_processed/master_test.csv', index=False)
-    post_covid.to_csv('../data/ntsb_processed/master_post_covid.csv', index=False)
+    data_train.to_csv('data/ntsb_processed/master_train.csv', index=False)
+    data_val.to_csv('data/ntsb_processed/master_val.csv', index=False)
+    data_test.to_csv('data/ntsb_processed/master_test.csv', index=False)

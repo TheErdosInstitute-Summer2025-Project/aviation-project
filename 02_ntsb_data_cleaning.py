@@ -57,14 +57,14 @@ def drop_sparse_columns(data, threshold):
     
 def remove_already_processed_and_almost_all_same_columns(data):
     # Already processed
-    data.drop(columns=['Aircraft_Key', 
+    data.drop(columns=[#'Aircraft_Key', 
                     'ev_id', 
                     #'finding_description'    # no longer in data
-                    'total_seats' # No longer need
+                    # 'total_seats' # No longer need
                     ], inplace=True)
 
     # (Almost) all rows have same value
-    data.drop(columns=['certs_held', 'unmanned'], inplace=True)
+    # data.drop(columns=['certs_held', 'unmanned'], inplace=True)
     return data
 
 
