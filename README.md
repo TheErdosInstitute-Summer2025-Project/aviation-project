@@ -2,20 +2,18 @@
 
 # 🎯 Aviation Safety Predictive Analysis
 
+---
 
 ## 📜 Table of Contents
-- [🎯 Aviation Safety Predictive Analysis](#-aviation-safety-predictive-analysis)
-  - [📜 Table of Contents](#-table-of-contents)
-  - [📖 Project Overview](#-project-overview)
-    - [**Stakeholders**](#stakeholders)
-    - [**Key Performance Indicators (KPIs)**](#key-performance-indicators-kpis)
-  - [📊 Dataset Collection \& Cleaning](#-dataset-collection--cleaning)
-  - [✨Exploratory Data Analysis](#exploratory-data-analysis)
-  - [](#)
-  - [⚙️ Methodology \& Analysis Pipeline](#️-methodology--analysis-pipeline)
-  - [📈 Results](#-results)
-  - [🚀  Conclusion](#--conclusion)
-  - [🏗️ Future Work](#️-future-work)
+- [📖 Project Overview](#-project-overview)
+  - [**Stakeholders**](#stakeholders)
+  - [**Key Performance Indicators (KPIs)**](#key-performance-indicators-kpis)
+- [📊 Dataset Collection \& Cleaning](#-dataset-collection--cleaning)
+- [✨Exploratory Data Analysis](#exploratory-data-analysis)
+- [⚙️ Methodology \& Analysis Pipeline](#️-methodology--analysis-pipeline)
+- [📈 Results](#-results)
+- [🚀  Conclusion](#--conclusion)
+- [🏗️ Future Work](#️-future-work)
 
 ---
 
@@ -76,7 +74,20 @@ Key preprocessing steps:
 ## ✨Exploratory Data Analysis
 
 **Add EDA plots**
-![Accident Map, 2000-2025](image.png)
+
+**Aviation accidents heatmap:**
+
+![](img/heatmap.png)
+
+[Clike to view interactive map](img/heatmap.html)
+
+
+
+
+![](img/interactive_heatmap.png)
+
+[Clike to view interactive map](img/interactive_heatmap.html)
+
 ---
 
 ## ⚙️ Methodology & Analysis Pipeline
@@ -98,7 +109,14 @@ The project follows these key steps:
     -   Bagged k-NN
         
 -   **Hyperparameter Tuning:** Each model is optimized via cross-validation. Final selection balances performance, efficiency, and interpretability.
+
 - **Add more**
+
+We built a time series forecasting pipeline using an LSTM model to predict monthly accident counts based on past data. The model captures temporal trends in the data and generates future estimates, with mean absolute error (MAE) used to evaluate prediction accuracy.
+
+![](img/time_series_pred.png)
+
+The MAE is 17.37, which is pretty low since the number of monthly accidents is usually above 100.
 
 ---
 
