@@ -20,6 +20,8 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor, ExtraTreesRegressor, BaggingRegressor
 from xgboost import XGBRegressor
+seed = 51841519 # Set seed - when re-fitting in 4b, ensures reproducibility
+
 
 
 # Read in data, prepare for evaluation
@@ -101,7 +103,7 @@ def fatal_grid_search(model, param_grid, label):
 # Save best performing model & its metrics
 
 ## Random Forest Regressor Grid Search
-rf = RandomForestRegressor()
+rf = RandomForestRegressor(random_state=seed)
 rf_param_grid = {
     'n_estimators':[10,500,1000],
     'min_samples_leaf':[2,5,10, 20],
@@ -111,7 +113,7 @@ rf_mod_f = fatal_grid_search(rf,rf_param_grid,"randomforest")
 
 
 ## Histogram Gradient Boosting Regressor Search
-histgrad = HistGradientBoostingRegressor()
+histgrad = HistGradientBoostingRegressor(random_state=seed)
 hg_param_grid = {
     'learning_rate': [0.01,0.05,0.1,0.5,1],
     'max_iter': [100,200,500],
@@ -122,7 +124,7 @@ hg_mod_f = fatal_grid_search(histgrad, hg_param_grid, "histgrad")
 
 
 ## Extra Trees Regressor
-extrees = ExtraTreesRegressor()
+extrees = ExtraTreesRegressor(random_state=seed)
 et_param_grid = {
     'max_depth': [2,10,50,100,1000],
     'n_estimators': [10,100,500,1000],
@@ -133,7 +135,7 @@ et_mod_f = fatal_grid_search(extrees,et_param_grid,"extrees")
 
 
 ## Bagging Regressor
-baggingreg = BaggingRegressor()
+baggingreg = BaggingRegressor(random_state=seed)
 bg_param_grid = {
     'n_estimators': [10,100,500,1000],
 }
@@ -141,7 +143,7 @@ bag_mod_f = fatal_grid_search(baggingreg,bg_param_grid,"bagging")
 
 
 ## XGBoost
-xgb = XGBRegressor()
+xgb = XGBRegressor(random_state=seed)
 xgb_param_grid = {
     'n_estimators': [100, 200, 500],
     'max_depth': [3, 6, 10],
@@ -308,18 +310,6 @@ g.fig.suptitle("Training vs Validation MSE by Target Variable", y=1.08)
 plt.tight_layout()
 g.savefig('img/validation_learners_scores.png')
 
-
-
 ############################################################
-##                 Fitting to Test Set                    ##
 ############################################################
-
-# Read in Test Data
-test = pd.read_csv('data/ntsb_processed/ntsb_test_cleaned.csv').dropna()
-
-y_test_f = np.ravel(test[target_f])
-y_test_s = np.ravel(test[target_s])
-X_test = test[features]
-
-print(performances[performances['val_mse'] == performances['val_mse'].min()])
 
