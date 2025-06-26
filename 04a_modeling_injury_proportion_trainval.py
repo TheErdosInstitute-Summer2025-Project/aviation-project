@@ -20,7 +20,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor, ExtraTreesRegressor, BaggingRegressor
 from xgboost import XGBRegressor
-seed = 51841519
+seed = 51841519 # Set seed - when re-fitting in 4b, ensures reproducibility
 
 
 
