@@ -299,7 +299,7 @@ g = sns.catplot(
     palette='Blues_d',
     height=5,
     aspect=1.4,
-    sharey=True,
+    sharey=False,
     order=sorted_order
 )
 
