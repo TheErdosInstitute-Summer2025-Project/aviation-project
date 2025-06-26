@@ -308,18 +308,6 @@ g.fig.suptitle("Training vs Validation MSE by Target Variable", y=1.08)
 plt.tight_layout()
 g.savefig('img/validation_learners_scores.png')
 
-
-
 ############################################################
-##                 Fitting to Test Set                    ##
 ############################################################
-
-# Read in Test Data
-test = pd.read_csv('data/ntsb_processed/ntsb_test_cleaned.csv').dropna()
-
-y_test_f = np.ravel(test[target_f])
-y_test_s = np.ravel(test[target_s])
-X_test = test[features]
-
-print(performances[performances['val_mse'] == performances['val_mse'].min()])
 
