@@ -221,12 +221,13 @@ def stratified_group_split(data, strat_col, group_col):
     # data_train <- remaining data (60%)
     for i, (train_index, test_index) in enumerate(splits):
         if i==0:
-            data_test = data.iloc[test_index]
-            data_train = data.iloc[train_index]
+            data_test = data.iloc[test_index].copy()
+            data_train = data.iloc[train_index].copy()
         elif i==1:
-            data_val = data.iloc[test_index]
-            data_train.drop(test_index)
-            break
+            data_val = data.iloc[test_index].copy()
+
+    in_val = data_train['ntsb_no'].isin(data_val['ntsb_no'])
+    data_train = data_train[~in_val]
 
     return data_train, data_val, data_test
 
