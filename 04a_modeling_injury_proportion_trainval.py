@@ -1,12 +1,12 @@
-## Modeling: Injury Proportions
+## Modeling Injury Proportions, Part 1
 
 # This script imports the NTSB training and validation sets,
 # and iteratively tests the performance of various regression-based learners
 # while grid searching over a range of hyperparameters for each, comparing
 # the performance of all learners to each other and to a naive prediction
 # which takes the mean value of each proprtion. After establishing the 
-# best performing learner, feature importances are printed and the 
-# model is applied to the test dataset.
+# best performing learner, the dataset containing the performances of each fitted model
+# is exported to then be applied to the test set.
 
 # Load Libraries
 
@@ -276,9 +276,10 @@ mse_plot_df = df_filtered.melt(
 # Extract 'Train' and "Validation"
 mse_plot_df['dataset'] = mse_plot_df['metric'].apply(lambda x: 'Train' if 'train' in x else 'Validation')
 
-# Sort learners by average score across all targets/datasets
+# Sort learners by average validation MSE
+val_only = mse_plot_df[mse_plot_df['dataset'] == 'Validation']
 sorted_order = (
-    mse_plot_df.groupby('learner')['score']
+    val_only.groupby('learner')['score']
     .mean()
     .sort_values()
     .index
@@ -305,5 +306,20 @@ g.set_axis_labels("MSE", "Model")
 g.fig.suptitle("Training vs Validation MSE by Target Variable", y=1.08)
 
 plt.tight_layout()
-g.savefig('img/serious_learners_scores.png')
+g.savefig('img/validation_learners_scores.png')
+
+
+
+############################################################
+##                 Fitting to Test Set                    ##
+############################################################
+
+# Read in Test Data
+test = pd.read_csv('data/ntsb_processed/ntsb_test_cleaned.csv').dropna()
+
+y_test_f = np.ravel(test[target_f])
+y_test_s = np.ravel(test[target_s])
+X_test = test[features]
+
+print(performances[performances['val_mse'] == performances['val_mse'].min()])
 
