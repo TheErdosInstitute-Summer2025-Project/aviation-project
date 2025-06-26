@@ -31,7 +31,7 @@ print(f_performances[f_performances['val_mse'] == f_performances['val_mse'].min(
 print(s_performances[s_performances['val_mse'] == s_performances['val_mse'].min()]) # Best "serious" model
 
 ############################################################
-##                 Fitting to Test Set                    ##
+##                 Predicting Test Set                    ##
 ############################################################
 
 # Read in Training and Test Data, Create Relevant Objects
