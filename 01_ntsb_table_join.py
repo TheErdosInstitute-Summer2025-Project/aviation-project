@@ -249,7 +249,12 @@ if __name__ == '__main__':
     merged = merged[(merged['ev_country']=="USA") & (merged['ev_type']=="ACC")]
     merged.loc[merged['damage'].isna(),'damage'] = 'UNK'
 
+    # Drop recent data with many missing entries
     data = merged[merged['ev_year'] < 2022]
+
+    # Drop data with missing / corrupted values for crucial variable we aren't imputing
+    data = data[~data['date_last_insp'].isna()]
+
     data = data.reset_index().drop(columns=['index'])
 
     ### 4. Train / validation / test split
