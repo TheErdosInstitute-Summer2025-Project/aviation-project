@@ -29,8 +29,8 @@ train = pd.read_csv('data/ntsb_processed/ntsb_train_cleaned.csv').dropna()
 validation = pd.read_csv('data/ntsb_processed/ntsb_val_cleaned.csv').dropna()
 
 target_f   = ['acft_prop_inj_f']
-target_s   = ['acft_prop_inj_f']
-features = ['latitude','longitude','apt_dist','gust_kts','altimeter','aircraft_count',
+target_s   = ['acft_prop_inj_s']
+features = ['latitude','longitude','apt_dist','gust_kts','aircraft_count',
             'num_eng','days_since_insp','light_cond_DAYL','light_cond_DUSK','light_cond_NDRK',
             'light_cond_NITE','light_cond_other/unknown','BroadPhaseofFlight_Air',
             'BroadPhaseofFlight_Ground','BroadPhaseofFlight_Landing','BroadPhaseofFlight_Takeoff',
@@ -250,6 +250,11 @@ performances.loc[len(performances)] = [
         train_mse, train_mae,
         val_mse, val_mae]
 
+############################################################
+##             Performance Data Export                    ##
+############################################################
+
+performances.to_csv('data/regression_performances.csv',index=False)
 
 
 ############################################################
@@ -341,5 +346,5 @@ g.set_titles("{col_name}")
 g.set_axis_labels("Score", "Model")
 g.fig.suptitle(f"Training MSE and MAE for 'Serious' Learners", y=1.08)
 plt.tight_layout()
-g.savefig('../img/serious_learners_scores.png')
+g.savefig('img/serious_learners_scores.png')
 
