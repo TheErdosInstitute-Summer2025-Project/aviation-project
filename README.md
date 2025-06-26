@@ -31,7 +31,7 @@ The main scripts are in the top level
  
  The directory 'deliverables' contains the executive summary, presentation slides, and previous project checkpoints.
  
- The directory 'jupyter-notebooks' contains notebooks for exploratory data analysis, model testing, an previous versions of code that went into the scripts.
+ The directory 'jupyter_notebooks' contains notebooks for exploratory data analysis, model testing, and preliminary versions of code that went into the scripts.
  
 
 ## 📖 Project Overview
