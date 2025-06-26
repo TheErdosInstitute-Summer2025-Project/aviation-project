@@ -103,10 +103,11 @@ def grid_search(model, label,
 ############################################################
 # Run iterative grid searches of hyperparameter values per model
 # Save best performing model & its metrics
-def main(use_preset=True):
-    global USE_PRESET_PARAMS, PRESET_PARAMS
+def main(use_preset=True, user_params={}):
+    global USE_PRESET_PARAMS
     USE_PRESET_PARAMS = use_preset
-
+    global USER_PARAMS
+    USER_PARAMS = user_params
     train, validation = load_data()
 
     features = ['latitude','longitude','apt_dist','gust_kts','aircraft_count',
@@ -139,7 +140,7 @@ def main(use_preset=True):
 
     models = {
         "randomforest": (RandomForestClassifier(), {
-            'n_estimators': [100, 200], 'max_depth': [10,30,50], 'min_samples_split': [5], 'max_features': [None]
+            'n_estimators': [100, 200], 'max_depth': [30], 'min_samples_split': [5], 'max_features': [None]
         }),
         "histgrad": (HistGradientBoostingClassifier(), {
             'learning_rate': [0.1], 'max_iter': [200], 'max_leaf_nodes': [31], 'min_samples_leaf': [50]
@@ -153,10 +154,9 @@ def main(use_preset=True):
     }
 
     PRESET_PARAMS = {k: v[1] for k, v in models.items()}
-
     for label, (model, param_grid) in models.items():
         grid_search(model, label, X_train, X_val, y_train_encoded, y_val_encoded, features,
-                    param_grid=None if USE_PRESET_PARAMS else param_grid)
+                    param_grid=None if USE_PRESET_PARAMS else user_params)
 
     y_dumb_val = np.full_like(y_val_encoded, 1)
     performances.loc[len(performances)] = ["Naive", 'None', target,
@@ -183,19 +183,39 @@ def main(use_preset=True):
 
 if __name__ == "__main__":
     import argparse
+    import json
+
     parser = argparse.ArgumentParser(description="Run damage model with or without grid search")
     parser.add_argument('--grid', action='store_true', help="Run full grid search (default is preset params)")
+    parser.add_argument('--params', type=str, default=None,
+                        help='''Optional JSON string of user-defined hyperparameters.
+Example:
+--params '{"randomforest": {"n_estimators": [100, 200], "max_depth": [30]},
+           "xgboost": {"n_estimators": [100], "learning_rate": [0.1]},
+           "histgrad": {"n_estimators": [100], "max_iter": [200]},
+           "extrees": {"n_estimators": [100], "max_depth": [10]}}'
+''')
+
     args = parser.parse_args()
-    main(use_preset=not args.grid)
+
+    if args.params:
+        user_params = json.loads(args.params)
+    else:
+        user_params = {}
+
+    main(use_preset=not args.grid, user_params=user_params)
     
+## The following full parameter grids were used to determine the default settings:
 
+## Random Forest
 # rf_param_grid = {
-#                 'n_estimators': [100, 200, 500],
-#                 'max_depth': [None,5, 10, 20, 30],
-#                 'min_samples_split': [2, 5, 10, 20],
-#                 'max_features': ['sqrt', 'log2', None]
-#                 }
+#     'n_estimators': [100, 200, 500],
+#     'max_depth': [None, 5, 10, 20, 30],
+#     'min_samples_split': [2, 5, 10, 20],
+#     'max_features': ['sqrt', 'log2', None]
+# }
 
+## Histogram Gradient Boosting
 # hg_param_grid = {
 #     'learning_rate': [0.01, 0.05, 0.1, 0.5],
 #     'max_iter': [100, 200, 500],
@@ -203,6 +223,7 @@ if __name__ == "__main__":
 #     'min_samples_leaf': [20, 50, 100]
 # }
 
+## Extra Trees
 # et_param_grid = {
 #     'n_estimators': [100, 200, 500],
 #     'max_depth': [None, 5, 10, 20, 30],
@@ -210,7 +231,7 @@ if __name__ == "__main__":
 #     'max_features': ['sqrt', 'log2', None]
 # }
 
-
+## XGBoost
 # xgb_param_grid = {
 #     'n_estimators': [20, 100, 200, 500, 1000],
 #     'max_depth': [3, 6, 10],
