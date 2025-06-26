@@ -241,6 +241,7 @@ if __name__ == '__main__':
     
     ### 2. Merge data into a single DataFrame
     merged = merge_data(engines, aircraft, injuries, events,carol_data)
+    merged.to_csv('data/ntsb_processed/master.csv', index=False)
 
     ### 3. Restrict data to the scope of our problem:
     #      - Accidents
