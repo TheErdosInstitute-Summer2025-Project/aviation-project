@@ -17,7 +17,7 @@ import numpy as np
 
 
 def drop_rows_missing_injuries_or_location(data):
-    '''Drop rows of planes with missing injury data'''
+    '''Drop rows of planes with missing injury data or latitude/longitude'''
 
     # Drop rows with unknown event injury totals (~20 rows in the training data)
     data = data[~data['ev_inj_tot_t'].isna()]
