@@ -30,7 +30,7 @@ validation = pd.read_csv('data/ntsb_processed/ntsb_val_cleaned.csv').dropna()
 
 target_f   = ['acft_prop_inj_f']
 target_s   = ['acft_prop_inj_s']
-features = ['latitude','longitude','apt_dist','gust_kts','aircraft_count',
+features = ['latitude','longitude','apt_dist','gust_kts','altimeter','aircraft_count',
             'num_eng','days_since_insp','light_cond_DAYL','light_cond_DUSK','light_cond_NDRK',
             'light_cond_NITE','light_cond_other/unknown','BroadPhaseofFlight_Air',
             'BroadPhaseofFlight_Ground','BroadPhaseofFlight_Landing','BroadPhaseofFlight_Takeoff',
@@ -39,7 +39,7 @@ features = ['latitude','longitude','apt_dist','gust_kts','aircraft_count',
             'far_part_other/unknown','acft_make_beech','acft_make_bell','acft_make_boeing','acft_make_cessna',
             'acft_make_mooney','acft_make_other/unknown','acft_make_piper','acft_make_robinson helicopter',
             'acft_category_AIR','acft_category_HELI','acft_category_other/unknown','homebuilt_N','homebuilt_Y',
-            'homebuilt_other/unknown','fixed_retractable_FIXD','fixed_retractable_RETR','fixed_retractable_other/unknown',
+            'fixed_retractable_FIXD','fixed_retractable_RETR',
             'second_pilot_N','second_pilot_Y','second_pilot_other/unknown']
 
 X_train = train[features]
@@ -261,90 +261,49 @@ performances.to_csv('data/regression_performances.csv',index=False)
 ##             Model Comparison (w/ Naive Learner)        ##
 ############################################################
 
-# In progress - need to build naive predictor and compare the results for both target variables.
-
 print(performances)
 
-## Plotting FATAL Injury Learners
-target_to_plot = 'prop_inj_fatal'  # or 'serious'
-# Filter perfrormances
-df_filtered = performances[performances['target'] == target_to_plot].copy()
-# Melt to long format
-train_plot_df = df_filtered.melt(
-    id_vars=['learner'],
-    value_vars=['train_mse', 'train_mae'],
+# Filter only for MSE columns
+df_filtered = performances.copy()
+
+# Melt MSE columns
+mse_plot_df = df_filtered.melt(
+    id_vars=['learner', 'target'],
+    value_vars=['train_mse', 'val_mse'],
     var_name='metric',
     value_name='score'
 )
+# Extract 'Train' and "Validation"
+mse_plot_df['dataset'] = mse_plot_df['metric'].apply(lambda x: 'Train' if 'train' in x else 'Validation')
 
-# Sort learners by mSE/MAE score
-train_plot_df['learner'] = train_plot_df['learner'].astype(str)  
+# Sort learners by average score across all targets/datasets
 sorted_order = (
-    train_plot_df.groupby('metric')
-    .apply(lambda x: x.sort_values('score'))['learner']
-    .reset_index(drop=True)
-    .drop_duplicates()
+    mse_plot_df.groupby('learner')['score']
+    .mean()
+    .sort_values()
+    .index
     .tolist()
 )
-# Bar plot with seaborn
+
+# Plot
 g = sns.catplot(
-    data=train_plot_df,
+    data=mse_plot_df,
     kind='bar',
     y='learner',
     x='score',
-    col='metric',
+    hue='dataset',
+    col='target',
     palette='Blues_d',
     height=5,
     aspect=1.4,
-    sharey=False,
+    sharey=True,
     order=sorted_order
 )
-g.set_titles("{col_name}")
-g.set_axis_labels("Score", "Model")
-g.fig.suptitle(f"Training MSE and MAE for 'Fatal' Learners", y=1.08)
-plt.tight_layout()
-g.savefig('../img/fatal_learners_scores.png')
 
+g.set_titles("Target: {col_name}")
+g.set_axis_labels("MSE", "Model")
+g.fig.suptitle("Training vs Validation MSE by Target Variable", y=1.08)
 
-
-
-## Plotting SERIOUS Injury Learners
-target_to_plot = 'prop_inj_serious'  # or 'serious'
-# Filter perfrormances
-df_filtered = performances[performances['target'] == target_to_plot].copy()
-# Melt to long format
-train_plot_df = df_filtered.melt(
-    id_vars=['learner'],
-    value_vars=['train_mse', 'train_mae'],
-    var_name='metric',
-    value_name='score'
-)
-
-# Sort learners by mSE/MAE score
-train_plot_df['learner'] = train_plot_df['learner'].astype(str)  
-sorted_order = (
-    train_plot_df.groupby('metric')
-    .apply(lambda x: x.sort_values('score'))['learner']
-    .reset_index(drop=True)
-    .drop_duplicates()
-    .tolist()
-)
-# Bar plot with seaborn
-g = sns.catplot(
-    data=train_plot_df,
-    kind='bar',
-    y='learner',
-    x='score',
-    col='metric',
-    palette='Blues_d',
-    height=5,
-    aspect=1.4,
-    sharey=False,
-    order=sorted_order
-)
-g.set_titles("{col_name}")
-g.set_axis_labels("Score", "Model")
-g.fig.suptitle(f"Training MSE and MAE for 'Serious' Learners", y=1.08)
 plt.tight_layout()
 g.savefig('img/serious_learners_scores.png')
 
