@@ -27,7 +27,7 @@ The main scripts are in the top level
  - 04a_modeling_injury_proportion_trainval.py: Models injury proportions with several ensemble models, tunes hyperparameters via cross-validation, saves best parameters and model performances on train and validation sets to file.
  - 04b_modeling_injury_proportion_trainval.py: Runs the best injury proportion model on the test set.
  
- The directory 'data' contains subdirectories with raw NTSB data, cleaned NTSB data, t-100 data, and model performance data.
+ The directory 'data' contains subdirectories with raw NTSB data, cleaned NTSB data, t-100 data, and model performance data. It also has two files explaining the NTSB data: a codemap of all available variables and detailed definitions of how injuries and aircraft damage are categorized.
  
  The directory 'deliverables' contains the executive summary, presentation slides, and previous project checkpoints.
  
