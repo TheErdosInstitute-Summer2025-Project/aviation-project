@@ -25,8 +25,8 @@ from xgboost import XGBRegressor
 # Read in data, prepare for evaluation
 ## NOTE: The train/validation split has already been conducted at an earlier stage.
 
-train = pd.read_csv('data/ntsb_processed/ntsb_train_cleaned.csv')
-validation = pd.read_csv('data/ntsb_processed/ntsb_val_cleaned.csv')
+train = pd.read_csv('data/ntsb_processed/ntsb_train_cleaned.csv').dropna()
+validation = pd.read_csv('data/ntsb_processed/ntsb_val_cleaned.csv').dropna()
 
 target_f   = ['acft_prop_inj_f']
 target_s   = ['acft_prop_inj_f']
@@ -43,17 +43,17 @@ features = ['latitude','longitude','apt_dist','gust_kts','altimeter','aircraft_c
             'second_pilot_N','second_pilot_Y','second_pilot_other/unknown']
 
 X_train = train[features]
-y_train_f = train[target_f] # Fatal Injuries proportion target
-y_train_s = train[target_s] # Serious Injuries proportion target
+y_train_f = np.ravel(train[target_f]) # Fatal Injuries proportion target
+y_train_s = np.ravel(train[target_s]) # Serious Injuries proportion target
 
 X_val = validation[features]
-y_val_f = validation[target_f]
-y_val_s = validation[target_s]
+y_val_f = np.ravel(validation[target_f])
+y_val_s = np.ravel(validation[target_s])
 
 
 # Initialize performance dataframe
 performances = pd.DataFrame(columns=['learner','hyperparams','target',
-                                     'train_mse','train_mae','val_mse','val'])
+                                     'train_mse','train_mae','val_mse','val_mae'])
 
 # Initialize Grid Search & Performance Append Function
 def fatal_grid_search(model, param_grid, label):
@@ -91,7 +91,6 @@ def fatal_grid_search(model, param_grid, label):
         val_mse,
         val_mae
     ]
-    
     return best_mod
 
 
@@ -142,7 +141,7 @@ bag_mod_f = fatal_grid_search(baggingreg,bg_param_grid,"bagging")
 
 
 ## XGBoost
-xgb = XGBClassifier()
+xgb = XGBRegressor()
 xgb_param_grid = {
     'n_estimators': [100, 200, 500],
     'max_depth': [3, 6, 10],
@@ -151,6 +150,21 @@ xgb_param_grid = {
     'colsample_bytree': [0.6, 0.8, 1.0]
 }
 xgb_mod_f = fatal_grid_search(xgb,xgb_param_grid,"xgboost")
+
+## "Naive" Prediction - Average Proportion of Fatal Injuries
+naive_train_pred = [y_train_f.mean()] * len(y_train_f)
+naive_val_pred = [y_train_f.mean()] * len(y_val_f)
+
+train_mse = mean_squared_error(y_train_f,naive_train_pred)
+val_mse = mean_squared_error(y_val_f, naive_val_pred)
+train_mae = mean_absolute_error(y_train_f, naive_train_pred)
+val_mae = mean_absolute_error(y_val_f, naive_val_pred)
+
+performances.loc[len(performances)] = [
+        'naivemean', '{n/a}', 'prop_inj_fatal',
+        train_mse, train_mae,
+        val_mse, val_mae]
+
 
 
 ############################################################
@@ -210,7 +224,6 @@ def serious_grid_search(model, param_grid, label):
 ## Random Forest Regressor Grid Search
 rf_mod_s = serious_grid_search(rf,rf_param_grid,"randomforest")
 
-
 ## Histogram Gradient Boosting Regressor Search
 hg_mod_s = serious_grid_search(histgrad, hg_param_grid, "histgrad")
 
@@ -223,6 +236,19 @@ bag_mod_s = serious_grid_search(baggingreg,bg_param_grid,"bagging")
 ## XGBoost Regressor
 xgb_mod_s = serious_grid_search(xgb,xgb_param_grid,"xgboost")
 
+## "Naive" Prediction - Average Proportion of Serious Injuries
+naive_train_pred = [y_train_s.mean()] * len(y_train_s)
+naive_val_pred = [y_train_s.mean()] * len(y_val_s)
+
+train_mse = mean_squared_error(y_train_s,naive_train_pred)
+val_mse = mean_squared_error(y_val_s, naive_val_pred)
+train_mae = mean_absolute_error(y_train_s, naive_train_pred)
+val_mae = mean_absolute_error(y_val_s, naive_val_pred)
+
+performances.loc[len(performances)] = [
+        'naivemean', '{n/a}', 'prop_inj_serious',
+        train_mse, train_mae,
+        val_mse, val_mae]
 
 
 
@@ -233,3 +259,87 @@ xgb_mod_s = serious_grid_search(xgb,xgb_param_grid,"xgboost")
 # In progress - need to build naive predictor and compare the results for both target variables.
 
 print(performances)
+
+## Plotting FATAL Injury Learners
+target_to_plot = 'prop_inj_fatal'  # or 'serious'
+# Filter perfrormances
+df_filtered = performances[performances['target'] == target_to_plot].copy()
+# Melt to long format
+train_plot_df = df_filtered.melt(
+    id_vars=['learner'],
+    value_vars=['train_mse', 'train_mae'],
+    var_name='metric',
+    value_name='score'
+)
+
+# Sort learners by mSE/MAE score
+train_plot_df['learner'] = train_plot_df['learner'].astype(str)  
+sorted_order = (
+    train_plot_df.groupby('metric')
+    .apply(lambda x: x.sort_values('score'))['learner']
+    .reset_index(drop=True)
+    .drop_duplicates()
+    .tolist()
+)
+# Bar plot with seaborn
+g = sns.catplot(
+    data=train_plot_df,
+    kind='bar',
+    y='learner',
+    x='score',
+    col='metric',
+    palette='Blues_d',
+    height=5,
+    aspect=1.4,
+    sharey=False,
+    order=sorted_order
+)
+g.set_titles("{col_name}")
+g.set_axis_labels("Score", "Model")
+g.fig.suptitle(f"Training MSE and MAE for 'Fatal' Learners", y=1.08)
+plt.tight_layout()
+g.savefig('../img/fatal_learners_scores.png')
+
+
+
+
+## Plotting SERIOUS Injury Learners
+target_to_plot = 'prop_inj_serious'  # or 'serious'
+# Filter perfrormances
+df_filtered = performances[performances['target'] == target_to_plot].copy()
+# Melt to long format
+train_plot_df = df_filtered.melt(
+    id_vars=['learner'],
+    value_vars=['train_mse', 'train_mae'],
+    var_name='metric',
+    value_name='score'
+)
+
+# Sort learners by mSE/MAE score
+train_plot_df['learner'] = train_plot_df['learner'].astype(str)  
+sorted_order = (
+    train_plot_df.groupby('metric')
+    .apply(lambda x: x.sort_values('score'))['learner']
+    .reset_index(drop=True)
+    .drop_duplicates()
+    .tolist()
+)
+# Bar plot with seaborn
+g = sns.catplot(
+    data=train_plot_df,
+    kind='bar',
+    y='learner',
+    x='score',
+    col='metric',
+    palette='Blues_d',
+    height=5,
+    aspect=1.4,
+    sharey=False,
+    order=sorted_order
+)
+g.set_titles("{col_name}")
+g.set_axis_labels("Score", "Model")
+g.fig.suptitle(f"Training MSE and MAE for 'Serious' Learners", y=1.08)
+plt.tight_layout()
+g.savefig('../img/serious_learners_scores.png')
+
