@@ -35,7 +35,22 @@ def load_data():
 
 
 
+models = {
+        "randomforest": (RandomForestClassifier(), {
+            'n_estimators': [100, 200], 'max_depth': [30], 'min_samples_split': [5], 'max_features': [None]
+        }),
+        "histgrad": (HistGradientBoostingClassifier(), {
+            'learning_rate': [0.1], 'max_iter': [200], 'max_leaf_nodes': [31], 'min_samples_leaf': [50]
+        }),
+        "extrees": (ExtraTreesClassifier(), {
+            'n_estimators': [100], 'max_depth': [10], 'min_samples_split': [2], 'max_features': ['sqrt']
+        }),
+        "xgboost": (XGBClassifier(), {
+            'n_estimators': [100], 'max_depth': [6], 'learning_rate': [0.1], 'subsample': [0.8], 'colsample_bytree': [0.8]
+        })
+    }
 
+PRESET_PARAMS = {k: v[1] for k, v in models.items()}
 
 
 # Initialize performance dataframe
@@ -138,23 +153,8 @@ def main(use_preset=True, user_params={}):
     classification_report_dict = {}
     confusion_matrix_dict = {}
 
-    models = {
-        "randomforest": (RandomForestClassifier(), {
-            'n_estimators': [100, 200], 'max_depth': [30], 'min_samples_split': [5], 'max_features': [None]
-        }),
-        "histgrad": (HistGradientBoostingClassifier(), {
-            'learning_rate': [0.1], 'max_iter': [200], 'max_leaf_nodes': [31], 'min_samples_leaf': [50]
-        }),
-        "extrees": (ExtraTreesClassifier(), {
-            'n_estimators': [100], 'max_depth': [10], 'min_samples_split': [2], 'max_features': ['sqrt']
-        }),
-        "xgboost": (XGBClassifier(), {
-            'n_estimators': [100], 'max_depth': [6], 'learning_rate': [0.1], 'subsample': [0.8], 'colsample_bytree': [0.8]
-        })
-    }
-
-    PRESET_PARAMS = {k: v[1] for k, v in models.items()}
-    for label, (model, param_grid) in models.items():
+    
+    for label, (model, _) in models.items():
         grid_search(model, label, X_train, X_val, y_train_encoded, y_val_encoded, features,
                     param_grid=None if USE_PRESET_PARAMS else user_params)
 
