@@ -5,6 +5,7 @@
 ---
 
 ## 📜 Table of Contents
+- [ Repository Organization](#-repo-org)
 - [📖 Project Overview](#-project-overview)
   - [**Stakeholders**](#stakeholders)
   - [**Key Performance Indicators (KPIs)**](#key-performance-indicators-kpis)
@@ -16,6 +17,22 @@
 - [🏗️ Future Work](#️-future-work)
 
 ---
+
+## Repository Organization
+
+The main scripts are in the top level 
+ - 01_ntsb_table_join.py: Combines all data into a single table, drops data outside the scope of our problem, and does train/validation/test split.
+ - 02_ntsb_data_cleaning.py: Cleans training, validation, and test data.
+ - 03a_modeling_damage.py: Models damage proportions with several ensemble models, tunes hyperparameters via cross-validation, saves best parameters and model performances on train and validation sets to file.
+ - 04a_modeling_injury_proportion_trainval.py: Models injury proportions with several ensemble models, tunes hyperparameters via cross-validation, saves best parameters and model performances on train and validation sets to file.
+ - 04b_modeling_injury_proportion_trainval.py: Runs the best injury proportion model on the test set.
+ 
+ The directory 'data' contains subdirectories with raw NTSB data, cleaned NTSB data, t-100 data, and model performance data.
+ 
+ The directory 'deliverables' contains the executive summary, presentation slides, and previous project checkpoints.
+ 
+ The directory 'jupyter-notebooks' contains notebooks for exploratory data analysis, model testing, an previous versions of code that went into the scripts.
+ 
 
 ## 📖 Project Overview
 
