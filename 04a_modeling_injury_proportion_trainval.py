@@ -256,7 +256,7 @@ performances.loc[len(performances)] = [
 ##             Performance Data Export                    ##
 ############################################################
 
-performances.to_csv('data/regression_performances.csv',index=False)
+performances.to_csv('data/model_performance/regression_performances.csv',index=False)
 
 
 ############################################################
