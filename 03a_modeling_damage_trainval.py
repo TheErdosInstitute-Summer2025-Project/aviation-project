@@ -37,17 +37,30 @@ def load_data():
 
 models = {
         "randomforest": (RandomForestClassifier(), {
-            'n_estimators': [100, 200], 'max_depth': [30], 'min_samples_split': [5], 'max_features': [None]
-        }),
+    'n_estimators': [100, 200],
+    'max_depth': [None, 5, 10, 20],
+    'min_samples_split': [2, 5, 10],
+    'max_features': ['sqrt', 'log2', None]
+}),
         "histgrad": (HistGradientBoostingClassifier(), {
-            'learning_rate': [0.1], 'max_iter': [200], 'max_leaf_nodes': [31], 'min_samples_leaf': [50]
-        }),
+    'learning_rate': [0.01, 0.05, 0.1, 0.5],
+    'max_iter': [100, 200, 500],
+    'max_leaf_nodes': [3,9,15,31],
+    'min_samples_leaf': [10, 20, 30]
+}),
         "extrees": (ExtraTreesClassifier(), {
-            'n_estimators': [100], 'max_depth': [10], 'min_samples_split': [2], 'max_features': ['sqrt']
-        }),
+    'n_estimators': [100, 200, 500],
+    'max_depth': [2, 5, 10, 20, 30],
+    'min_samples_split': [2, 5, 10, 20],
+    'max_features': ['sqrt', 'log2', None]
+}),
         "xgboost": (XGBClassifier(), {
-            'n_estimators': [100], 'max_depth': [6], 'learning_rate': [0.1], 'subsample': [0.8], 'colsample_bytree': [0.8]
-        })
+    'n_estimators': [20, 100, 200, 500],
+    'max_depth': [3, 6, 10],
+    'learning_rate': [0.01, 0.1, 0.3],
+    'subsample': [0.6, 0.8, 1.0],
+    'colsample_bytree': [0.6, 0.8, 1.0]
+})
     }
 
 PRESET_PARAMS = {k: v[1] for k, v in models.items()}
@@ -207,7 +220,7 @@ Example:
     
 ## The following full parameter grids were used to determine the default settings:
 
-## Random Forest
+# # Random Forest
 # rf_param_grid = {
 #     'n_estimators': [100, 200, 500],
 #     'max_depth': [None, 5, 10, 20, 30],
@@ -215,7 +228,7 @@ Example:
 #     'max_features': ['sqrt', 'log2', None]
 # }
 
-## Histogram Gradient Boosting
+# # Histogram Gradient Boosting
 # hg_param_grid = {
 #     'learning_rate': [0.01, 0.05, 0.1, 0.5],
 #     'max_iter': [100, 200, 500],
@@ -223,7 +236,7 @@ Example:
 #     'min_samples_leaf': [20, 50, 100]
 # }
 
-## Extra Trees
+# # Extra Trees
 # et_param_grid = {
 #     'n_estimators': [100, 200, 500],
 #     'max_depth': [None, 5, 10, 20, 30],
@@ -231,7 +244,7 @@ Example:
 #     'max_features': ['sqrt', 'log2', None]
 # }
 
-## XGBoost
+# # XGBoost
 # xgb_param_grid = {
 #     'n_estimators': [20, 100, 200, 500, 1000],
 #     'max_depth': [3, 6, 10],
@@ -241,5 +254,55 @@ Example:
 # }
 
 
+############################################################
+##             Performance Data Export                    ##
+############################################################
+
+performances.to_csv('data/classification_performances.csv',index=False)
+
+# Filter only for MSE columns
+df_filtered = performances.copy()
+
+f1_plot_df = df_filtered.melt(
+    id_vars=['learner', 'target'],
+    value_vars=['train_f1_macro', 'val_f1_macro'],
+    var_name='metric',
+    value_name='score'
+)
 
 
+# Extract 'Train' and "Validation"
+f1_plot_df['dataset'] = f1_plot_df['metric'].apply(lambda x: 'Train' if 'train' in x else 'Validation')
+
+# Sort learners by average score across all targets/datasets
+sorted_order = (
+    f1_plot_df.groupby('learner')['score']
+    .mean()
+    .sort_values()
+    .index
+    .tolist()
+)
+
+# Plot
+g = sns.catplot(
+    data=f1_plot_df,
+    kind='bar',
+    y='learner',
+    x='score',
+    hue='dataset',
+    col='target',
+    palette='Blues_d',
+    height=5,
+    aspect=1.4,
+    sharey=True,
+    order=sorted_order
+)
+
+
+g.set_titles("Target: {col_name}")
+g.set_axis_labels("f1_score", "Model")
+g.fig.suptitle("Training vs Validation f1_score by Target Variable", y=1.08)
+
+
+plt.tight_layout()
+g.savefig('img/damage_learners_scores.png')
