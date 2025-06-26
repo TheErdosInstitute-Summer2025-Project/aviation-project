@@ -17,6 +17,7 @@ import seaborn as sns
 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor, ExtraTreesRegressor, BaggingRegressor
 from xgboost import XGBRegressor
 
@@ -54,27 +55,181 @@ y_val_s = validation[target_s]
 performances = pd.DataFrame(columns=['learner','hyperparams','target',
                                      'train_mse','train_mae','val_mse','val'])
 
+# Initialize Grid Search & Performance Append Function
+def fatal_grid_search(model, param_grid, label):
+    "Iteratively runs grid search on specified parameter grid and appends performance info to master dataset."
+    
+    target='prop_inj_fatal' # Declares label for target variable in master dataset
+
+    grid = GridSearchCV(
+        model,
+        param_grid,
+        scoring='neg_mean_squared_error',
+        cv=5
+    )
+    grid.fit(X_train,y_train_f)
+    best_mod = grid.best_estimator_
+    best_params = grid.best_params_
+
+    # Train and validation prediction objects 
+    y_train_pred = best_mod.predict(X_train)
+    y_val_pred = best_mod.predict(X_val)
+
+    # Performance metrics
+    train_mse = mean_squared_error(y_train_f,y_train_pred)
+    val_mse = mean_squared_error(y_val_f,y_val_pred)
+    train_mae = mean_absolute_error(y_train_f, y_train_pred)
+    val_mae = mean_absolute_error(y_val_f, y_val_pred)
+
+    # Append to performance dataframe
+    performances.loc[len(performances)] = [
+        label,
+        str(best_params),
+        target,
+        train_mse,
+        train_mae,
+        val_mse,
+        val_mae
+    ]
+    
+    return best_mod
 
 
-# Modeling: FATAL INJURIES
+############################################################
+##             Modeling: FATAL INJURIES                   ##
+############################################################
+# Run iterative grid searches of hyperparameter values per model
+# Save best performing model & its metrics
 
 ## Random Forest Regressor Grid Search
-
 rf = RandomForestRegressor()
-param_grid = {
+rf_param_grid = {
     'n_estimators':[10,500,1000],
     'min_samples_leaf':[2,5,10, 20],
     'max_samples':[100,500,1000]
 }
-grid = GridSearchCV(
-    rf,
-    param_grid,
-    scoring='neg_mean_squared_error',
-    cv=5
-)
-grid.fit(X_train,y_train_f)
-model = grid.best_estimator_ # Select best hyperparameter values for training set 
-
-# Testing validation performance
+rf_mod_f = fatal_grid_search(rf,rf_param_grid,"randomforest")
 
 
+## Histogram Gradient Boosting Regressor Search
+histgrad = HistGradientBoostingRegressor()
+hg_param_grid = {
+    'learning_rate': [0.01,0.05,0.1,0.5,1],
+    'max_iter': [100,200,500],
+    'max_leaf_nodes': [3,6,9]
+}
+hg_mod_f = fatal_grid_search(histgrad, hg_param_grid, "histgrad")
+
+
+
+## Extra Trees Regressor
+extrees = ExtraTreesRegressor()
+et_param_grid = {
+    'max_depth': [2,10,50,100,1000],
+    'n_estimators': [10,100,500,1000],
+    'max_leaf_nodes': [3,6,36,90]
+}
+et_mod_f = fatal_grid_search(extrees,et_param_grid,"extrees")
+
+
+
+## Bagging Regressor
+baggingreg = BaggingRegressor()
+bg_param_grid = {
+    'n_estimators': [10,100,500,1000],
+}
+bag_mod_f = fatal_grid_search(baggingreg,bg_param_grid,"bagging")
+
+
+## XGBoost
+xgb = XGBClassifier()
+xgb_param_grid = {
+    'n_estimators': [100, 200, 500],
+    'max_depth': [3, 6, 10],
+    'learning_rate': [0.01, 0.1, 0.3],
+    'subsample': [0.6, 0.8, 1.0],
+    'colsample_bytree': [0.6, 0.8, 1.0]
+}
+xgb_mod_f = fatal_grid_search(xgb,xgb_param_grid,"xgboost")
+
+
+############################################################
+# Initializing Serious Accidents Grid Search Function      #
+############################################################
+
+
+# Initialize Grid Search & Performance Append Function
+def serious_grid_search(model, param_grid, label):
+    "Iteratively runs grid search on specified parameter grid and appends performance info to master dataset."
+    
+    target='prop_inj_serious' # Declares label for target variable in master dataset
+
+    grid = GridSearchCV(
+        model,
+        param_grid,
+        scoring='neg_mean_squared_error',
+        cv=5
+    )
+    grid.fit(X_train,y_train_s)
+    best_mod = grid.best_estimator_
+    best_params = grid.best_params_
+
+    # Train and validation prediction objects 
+    y_train_pred = best_mod.predict(X_train)
+    y_val_pred = best_mod.predict(X_val)
+
+    # Performance metrics
+    train_mse = mean_squared_error(y_train_s,y_train_pred)
+    val_mse = mean_squared_error(y_val_s,y_val_pred)
+    train_mae = mean_absolute_error(y_train_s, y_train_pred)
+    val_mae = mean_absolute_error(y_val_s, y_val_pred)
+
+    # Append to performance dataframe
+    performances.loc[len(performances)] = [
+        label,
+        str(best_params),
+        target,
+        train_mse,
+        train_mae,
+        val_mse,
+        val_mae
+    ]
+    
+    return best_mod
+
+
+
+############################################################
+##             Modeling: SERIOUS INJURIES                 ##
+############################################################
+# Run iterative grid searches of hyperparameter values per model
+# Save best performing model & its metrics
+# Since most objects for this script were created in previous section, all that must be done is to 
+# run the new function on the same grid search & learner objects.
+
+## Random Forest Regressor Grid Search
+rf_mod_s = serious_grid_search(rf,rf_param_grid,"randomforest")
+
+
+## Histogram Gradient Boosting Regressor Search
+hg_mod_s = serious_grid_search(histgrad, hg_param_grid, "histgrad")
+
+## Extra Trees Regressor
+et_mod_s = serious_grid_search(extrees,et_param_grid,"extrees")
+
+## Bagging Regressor
+bag_mod_s = serious_grid_search(baggingreg,bg_param_grid,"bagging")
+
+## XGBoost Regressor
+xgb_mod_s = serious_grid_search(xgb,xgb_param_grid,"xgboost")
+
+
+
+
+############################################################
+##             Model Comparison (w/ Naive Learner)        ##
+############################################################
+
+# In progress - need to build naive predictor and compare the results for both target variables.
+
+print(performances)
