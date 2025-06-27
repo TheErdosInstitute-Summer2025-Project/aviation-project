@@ -1,5 +1,6 @@
 
 
+
 # 🎯 Aviation Safety Predictive Analysis
 
 ---
@@ -32,22 +33,43 @@ By combining these approaches, the project aims to highlight the conditions most
 ## 📊 Dataset Collection & Cleaning
 
 
-The project uses the official NTSB aviation accident database, which includes detailed information on each incident—such as aircraft type, flight phase, location, and weather conditions.
 
-Key preprocessing steps:
+We used `mdb-tools` to convert the `.mdb` database into `.csv` files. These files represented different levels—event, aircraft, and sub-aircraft. We merged them into a unified dataset with one entry per aircraft by propagating event-level data and aggregating sub-aircraft-level data.
 
--   Handled missing/inconsistent values.
-    
--   Engineered new features (e.g., time since last inspection).
-    
--   Split data into training and test sets to ensure robust model evaluation.
-- **Add more**
+Key preprocessing steps included:
+
+- **Missing data**:
+  - Dropped columns with >20% missing values
+  - Imputed numerical values
+  - Added "other/unknown" for sparse categorical values
+  - Dropped rows where appropriate
+
+- **Categorical simplification**:
+  - Grouped similar categories manually
+  - Merged rare values (<1% frequency) into "other/unknown"
+  - Applied one-hot encoding
+
+- **Feature engineering**:
+  - Created new features (e.g., time since last inspection)
+
+- **Data splitting**:
+  - Split into training and test sets for robust evaluation
+
+We modeled three outcomes:
+
+- Proportion of people onboard **fatally injured**
+- Proportion of people onboard **seriously injured**
+- Aircraft **damage level** (minor / serious / destroyed)
+
+Injury proportions were used instead of raw counts to normalize across aircraft sizes. Note:
 
 ---
 
 ## ✨Exploratory Data Analysis
 
-**Add EDA plots**
+**Aviation accidents by month**
+
+![](img/monthly_accidents.png)
 
 **Aviation accidents heatmap:**
 
@@ -66,26 +88,24 @@ Key preprocessing steps:
 
 ## ⚙️ Methodology & Analysis Pipeline
 
-The project follows these key steps:
+**Data splitting**:
+  - 60:20:20 train/validation/test split
+  - Stratified by damage category
+  - Grouped by event to avoid data leakage
 
--   **Feature Selection:** A Random Forest model is used to rank feature importance and reduce dimensionality while preserving key predictors.
-    
--   **Model Comparison:** Trained multiple models on the reduced set, including:
-    -   Bagged Decision Trees
-    -   Random Forest
-    -   Extra Trees
-    -   Histogram Gradient Boosting
-    -   XGBoost
-        
--   **Hyperparameter Tuning:** Each model is optimized via cross-validation. Final selection balances performance, efficiency, and interpretability.
+For each target variable, we trained and tuned the following ensemble models:
 
-- **Add more**
+- **Bagging**
+- **Random Forest**
+- **Extra Trees**
+- **XGBoost**
+- **Histogram Gradient Boosting**
+
+Hyperparameters were tuned using grid search with cross-validation on the training set—minimizing MSE for regression tasks and maximizing macro-averaged F1 for the imbalanced classification task. Final model selection was based on validation performance, after which the chosen model was retrained on the combined training and validation sets.
 
 We built a time series forecasting pipeline using an LSTM model to predict monthly accident counts based on past data. The model captures temporal trends in the data and generates future estimates, with mean absolute error (MAE) used to evaluate prediction accuracy.
 
 ![](img/time_series_pred.png)
-
-The MAE is 16.65, which is pretty low since the number of monthly accidents is usually above 100.
 
 ---
 
@@ -93,6 +113,23 @@ The MAE is 16.65, which is pretty low since the number of monthly accidents is u
 
 ## 📈 Results
 
+
+For the **regression tasks** (fatal and serious injury proportions), the **Histogram Gradient Boosting** model achieved the lowest validation MSE—with separate hyperparameters for each target:
+
+- **Fatal injuries**:
+  - Test MSE: **0.114** vs. baseline MSE: **0.133** → **14% improvement**
+- **Serious injuries**:
+  - Test MSE: **0.075** vs. baseline MSE: **0.077** → **2.5% improvement**
+
+![](results/model_performance/regression_res.png)
+
+For the **classification task** (aircraft damage level), the **Extra Trees** model achieved the highest macro-averaged F1 on the validation set:
+
+- Test macro-F1: **0.459** vs. baseline (majority class) macro-F1: **0.316**
+
+![](results/model_performance/classification_res.png)
+
+For the **time series prediction**, the **LSTM** model achieved 16.65 MAE.
 
 ---
 
@@ -110,7 +147,6 @@ While this project provides a strong foundation, there are several directions fo
 
 * **Deploy as an Interactive Tool:** Create a web-based dashboard that allows stakeholders to explore the data and test "what-if" scenarios using the final model.
 
-* **Add More**
 
 ## 📌 Repository Organization
 
