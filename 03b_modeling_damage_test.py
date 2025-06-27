@@ -28,10 +28,10 @@ label_map = {'MINR':0, 'SUBS' :1, 'DEST' :2}
 ############################################################
 
 ## load performance data obtained from the part 1
-performances = pd.read_csv('data/model_performance/classification_performances_trainval.csv')
-with open('data/model_performance/classification_report_dict_val.pkl', 'rb') as f:
+performances = pd.read_csv('results/model_performance/classification_performances_trainval.csv')
+with open('results/model_performance/classification_report_dict_val.pkl', 'rb') as f:
     classification_report_dict = pkl.load(f)
-with open('data/model_performance/classification_confusion_matrix_dict_val.pkl', 'rb') as f:
+with open('results/model_performance/classification_confusion_matrix_dict_val.pkl', 'rb') as f:
     classification_confusion_matrix_dict = pkl.load(f)
 
 df = performances.copy()

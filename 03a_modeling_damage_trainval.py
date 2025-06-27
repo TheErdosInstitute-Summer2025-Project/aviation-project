@@ -209,8 +209,8 @@ if __name__ == "__main__":
 ##             Performance and results Export             ##
 ############################################################
 
-    performances.to_csv('data/model_performance/classification_performances_trainval.csv',index=False)
-    with open('data/model_performance/classification_report_dict_val.pkl', 'wb') as f:
+    performances.to_csv('results/model_performance/classification_performances_trainval.csv',index=False)
+    with open('results/model_performance/classification_report_dict_val.pkl', 'wb') as f:
         pkl.dump(classification_report_dict, f)
-    with open('data/model_performance/classification_confusion_matrix_dict_val.pkl', 'wb') as f:
+    with open('results/model_performance/classification_confusion_matrix_dict_val.pkl', 'wb') as f:
         pkl.dump(confusion_matrix_dict, f)

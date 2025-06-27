@@ -25,7 +25,7 @@ seed = 51841519
 ##             Checking Model Performances                ##
 ############################################################
 
-performances = pd.read_csv('data/model_performance/regression_performances.csv')
+performances = pd.read_csv('results/model_performance/regression_performances.csv')
 f_performances = performances[performances['target']=='prop_inj_fatal']
 s_performances = performances[performances['target']=='prop_inj_serious']
 
