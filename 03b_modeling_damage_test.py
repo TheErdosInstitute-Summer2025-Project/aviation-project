@@ -28,10 +28,10 @@ label_map = {'MINR':0, 'SUBS' :1, 'DEST' :2}
 ############################################################
 
 ## load performance data obtained from the part 1
-performances = pd.read_csv('results/model_performance/classification_performances_trainval.csv')
-with open('results/model_performance/classification_report_dict_val.pkl', 'rb') as f:
+performances = pd.read_csv('data/model_performance/classification_performances_trainval.csv')
+with open('data/model_performance/classification_report_dict_val.pkl', 'rb') as f:
     classification_report_dict = pkl.load(f)
-with open('results/model_performance/classification_confusion_matrix_dict_val.pkl', 'rb') as f:
+with open('data/model_performance/classification_confusion_matrix_dict_val.pkl', 'rb') as f:
     classification_confusion_matrix_dict = pkl.load(f)
 
 df = performances.copy()
@@ -85,7 +85,7 @@ g.set_titles("Target: {col_name}")
 g.set_axis_labels("f1_score", "Model")
 g.fig.suptitle("Training vs Validation f1_score by Target Variable", y=1.08)
 g.set_xticklabels(rotation=45)
-
+g.set(xlim=(0, 1.0))
 plt.tight_layout()
 g.savefig('img/validation_damage_learners_scores_trainval.png', bbox_inches='tight')
     
@@ -123,7 +123,7 @@ target = 'damage'
 train = train[train[target] != 'UNK']
 test = test[test[target] != 'UNK']
 
-features = ['latitude','longitude','apt_dist','gust_kts','altimeter','aircraft_count',
+features = ['latitude','longitude','apt_dist','gust_kts','aircraft_count',
             'num_eng','days_since_insp','light_cond_DAYL','light_cond_DUSK','light_cond_NDRK',
             'light_cond_NITE','light_cond_other/unknown','BroadPhaseofFlight_Air',
             'BroadPhaseofFlight_Ground','BroadPhaseofFlight_Landing','BroadPhaseofFlight_Takeoff',
