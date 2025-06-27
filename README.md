@@ -24,7 +24,7 @@ This project analyzes aviation accident data from the National Transportation Sa
 Our work involves three key tasks:
 
 1. **Injury Severity Prediction**: Classify injury proportions into three categories (minor/serious/fatal)
-2. **Aircraft Damage Assessment**: Predict aircraft damage category (minor/substantial/destroyed)
+2. **Aircraft Damage Assessment**: Predict aircraft damage category (minor/serious/destroyed)
 3. **Accident Forecasting**: Forecast future accident counts using time-series methods
 
 By combining these approaches, the project aims to highlight the conditions most associated with severe outcomes. The insights gained can support data-informed decisions by regulators, manufacturers, and airline operators to improve safety practices, save lives, and prevent aircraft damage.
@@ -61,7 +61,7 @@ We modeled three outcomes:
 - Proportion of people onboard **seriously injured**
 - Aircraft **damage level** (minor / serious / destroyed)
 
-Injury proportions were used instead of raw counts to normalize across aircraft sizes. Note:
+Injury proportions were used instead of raw counts to normalize across aircraft sizes.
 
 ---
 
