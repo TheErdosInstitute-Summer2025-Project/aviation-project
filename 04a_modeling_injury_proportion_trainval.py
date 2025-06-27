@@ -308,7 +308,7 @@ g.set_axis_labels("MSE", "Model")
 g.fig.suptitle("Training vs Validation MSE by Target Variable", y=1.08)
 
 plt.tight_layout()
-g.savefig('results/feature_importances/validation_learners_scores.png')
+g.savefig('results/model_performance/validation_learners_scores.png')
 
 ############################################################
 ############################################################

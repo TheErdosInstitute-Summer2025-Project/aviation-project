@@ -147,7 +147,7 @@ axes[1].barh(train_importances['Feature'], train_importances['Importance'], colo
 axes[1].set_title('Permutation Importances (Train)')
 axes[1].invert_yaxis()
 plt.tight_layout()
-plt.savefig("img/fatal_permutation_importances.png", dpi=300, bbox_inches='tight')
+plt.savefig("results/feature_importances/fatal_permutation_importances.png", dpi=300, bbox_inches='tight')
 
 
 ## Serious Injury Proportions
@@ -178,4 +178,4 @@ axes[1].barh(train_importances['Feature'], train_importances['Importance'], colo
 axes[1].set_title('Permutation Importances (Train)')
 axes[1].invert_yaxis()
 plt.tight_layout()
-plt.savefig("img/serious_permutation_importances.png", dpi=300, bbox_inches='tight')
+plt.savefig("results/feature_importances/serious_permutation_importances.png", dpi=300, bbox_inches='tight')
