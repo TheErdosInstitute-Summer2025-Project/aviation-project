@@ -5,7 +5,7 @@
 ---
 
 ## 📜 Table of Contents
-- [ Repository Organization](#-repo-org)
+- [📌 Repository Organization](#-repo-org)
 - [📖 Project Overview](#-project-overview)
   - [**Stakeholders**](#stakeholders)
   - [**Key Performance Indicators (KPIs)**](#key-performance-indicators-kpis)
@@ -96,14 +96,14 @@ Key preprocessing steps:
 
 ![](img/heatmap.png)
 
-[Clike to view interactive map](img/heatmap.html)
+[Clike to view interactive map](https://raw.githack.com/TheErdosInstitute-Summer2025-Project/aviation-project/blob/main/img/heatmap.html)
 
 
 
 
 ![](img/interactive_heatmap.png)
 
-[Clike to view interactive map](img/interactive_heatmap.html)
+[Clike to view interactive map](https://raw.githack.com/TheErdosInstitute-Summer2025-Project/aviation-project/blob/main/img/interactive_heatmap.html)
 
 ---
 
