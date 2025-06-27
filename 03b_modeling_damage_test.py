@@ -203,11 +203,11 @@ if marker:
     # top 10 important features
     plt.figure(figsize=(10, 6))
     sns.barplot(data=new_feature_importance_df.head(10), x='Importance', y='Feature', palette='Blues_r')
-    plt.title(f"Top 10 Feature Importances ({learner}, reproduced)")
+    plt.title(f"Top 10 Feature Importances ({learner})")
     plt.xlabel("Importance")
     plt.ylabel("Feature")
     plt.tight_layout()
-    plt.savefig("img/classification_feature_importance_reproduced.png", dpi=300)
+    plt.savefig("img/classification_feature_importance.png", dpi=300)
     plt.show()
     plt.close()
     
