@@ -85,7 +85,7 @@ We built a time series forecasting pipeline using an LSTM model to predict month
 
 ![](img/time_series_pred.png)
 
-The MAE is 17.37, which is pretty low since the number of monthly accidents is usually above 100.
+The MAE is 16.65, which is pretty low since the number of monthly accidents is usually above 100.
 
 ---
 
