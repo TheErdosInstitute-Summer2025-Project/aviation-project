@@ -170,7 +170,10 @@ y_test_pred = model.predict(X_test)
 
 f1_train = f1_score(y_train_encoded, y_train_pred, average='macro')
 f1_test = f1_score(y_test_encoded, y_test_pred, average='macro')
-
+y_dumb_test = np.full_like(y_test_encoded, 1)
+dumb_score = f1_score(y_test_encoded, y_dumb_test, average='macro')
+print(f'f1 score macro average on testing dataset by {learner}:\n',f1_test, 
+      'f1 score macro average on testing dataset by dumb estimator:\n', dumb_score)
 report_str = classification_report(y_test_encoded, y_test_pred)
 
 cm = confusion_matrix(y_test_encoded, y_test_pred)
