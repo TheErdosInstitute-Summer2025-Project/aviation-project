@@ -1,0 +1,6 @@
+learner,hyperparams,target,train_f1_macro,val_f1_macro,cv_f1_macro
+randomforest,"{'max_depth': None, 'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 100}",damage,0.9974738871591006,0.3938539782597017,0.37109316623869093
+histgrad,"{'learning_rate': 0.1, 'max_iter': 100, 'max_leaf_nodes': 15, 'min_samples_leaf': 10}",damage,0.7836550719413222,0.3613938634857366,0.4168753448559105
+extrees,"{'max_depth': 30, 'max_features': None, 'min_samples_split': 2, 'n_estimators': 200}",damage,0.9951711682004202,0.4502330278641729,0.43105435772070566
+xgboost,"{'colsample_bytree': 0.8, 'learning_rate': 0.3, 'max_depth': 3, 'n_estimators': 500, 'subsample': 0.8}",damage,0.8550528880411735,0.37450828955664833,0.43291280583892544
+Naive,None,damage,0.31746031746031744,0.31746031746031744,0.31746031746031744
