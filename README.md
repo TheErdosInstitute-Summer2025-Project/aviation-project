@@ -5,7 +5,7 @@
 ---
 
 ## 📜 Table of Contents
-- [📌 Repository Organization](#-repo-org)
+- [📌 Repository Organization](#-repository-organization)
 - [📖 Project Overview](#-project-overview)
   - [**Stakeholders**](#stakeholders)
   - [**Key Performance Indicators (KPIs)**](#key-performance-indicators-kpis)
@@ -18,7 +18,7 @@
 
 ---
 
-## Repository Organization
+## 📌 Repository Organization
 
 The main scripts are in the top level 
  - 01_ntsb_table_join.py: Combines all data into a single table, drops data outside the scope of our problem, and does train/validation/test split.
