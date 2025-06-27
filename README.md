@@ -6,8 +6,6 @@
 
 ## 📜 Table of Contents
 - [📖 Project Overview](#-project-overview)
-  - [**Stakeholders**](#stakeholders)
-  - [**Key Performance Indicators (KPIs)**](#key-performance-indicators-kpis)
 - [📊 Dataset Collection \& Cleaning](#-dataset-collection--cleaning)
 - [✨Exploratory Data Analysis](#exploratory-data-analysis)
 - [⚙️ Methodology \& Analysis Pipeline](#️-methodology--analysis-pipeline)
@@ -28,33 +26,8 @@ Our work involves three key tasks:
 2. **Aircraft Damage Assessment**: Predict aircraft damage category (minor/substantial/destroyed)
 3. **Accident Forecasting**: Forecast future accident counts using time-series methods
 
-By combining these approaches, the project aims to highlight the conditions most associated with severe outcomes. The insights gained can support data-informed decisions by regulators, manufacturers, and airline operators to improve safety practices and reduce the risk of future accidents.
+By combining these approaches, the project aims to highlight the conditions most associated with severe outcomes. The insights gained can support data-informed decisions by regulators, manufacturers, and airline operators to improve safety practices, save lives, and prevent aircraft damage.
 
----
-
-### **Stakeholders**
-
--   **NTSB & FAA:** Inform regulations, investigations, and safety outreach.
-    
--   **Aircraft Manufacturers:** Guide design improvements based on failure insights.
-    
--   **Airlines/Operators:** Refine training, operations, and maintenance to reduce risk.
-    
-    
-
----
-
-### **Key Performance Indicators (KPIs)**
-
--   **Aircraft Damage & Injury Severity Prediction (Classification):**
-    
-    -   _Accuracy, Precision, Recall, F1_score_ – Evaluate classification quality across different categories.
-        
--   **Accident Forecasting (Time-Series):**
-    
-    -   _MAE_ – Assess accuracy of predicted accident counts over time.
-
----
 
 ## 📊 Dataset Collection & Cleaning
 
@@ -80,14 +53,14 @@ Key preprocessing steps:
 
 ![](img/heatmap.png)
 
-[Clike to view interactive map](https://raw.githack.com/TheErdosInstitute-Summer2025-Project/aviation-project/main/img/heatmap.html)
+[Click to view interactive map](https://raw.githack.com/TheErdosInstitute-Summer2025-Project/aviation-project/main/img/heatmap.html)
 
 
 
 
 ![](img/interactive_heatmap.png)
 
-[Clike to view interactive map](https://raw.githack.com/TheErdosInstitute-Summer2025-Project/aviation-project/main/img/interactive_heatmap.html)
+[Click to view interactive map](https://raw.githack.com/TheErdosInstitute-Summer2025-Project/aviation-project/main/img/interactive_heatmap.html)
 
 ---
 
