@@ -5,7 +5,6 @@
 ---
 
 ## 📜 Table of Contents
-- [📌 Repository Organization](#-repository-organization)
 - [📖 Project Overview](#-project-overview)
   - [**Stakeholders**](#stakeholders)
   - [**Key Performance Indicators (KPIs)**](#key-performance-indicators-kpis)
@@ -15,24 +14,9 @@
 - [📈 Results](#-results)
 - [🚀  Conclusion](#--conclusion)
 - [🏗️ Future Work](#️-future-work)
+- [📌 Repository Organization](#-repository-organization)
 
 ---
-
-## 📌 Repository Organization
-
-The main scripts are in the top level 
- - 01_ntsb_table_join.py: Combines all data into a single table, drops data outside the scope of our problem, and does train/validation/test split.
- - 02_ntsb_data_cleaning.py: Cleans training, validation, and test data.
- - 03a_modeling_damage.py: Models damage proportions with several ensemble models, tunes hyperparameters via cross-validation, saves best parameters and model performances on train and validation sets to file.
- - 04a_modeling_injury_proportion_trainval.py: Models injury proportions with several ensemble models, tunes hyperparameters via cross-validation, saves best parameters and model performances on train and validation sets to file.
- - 04b_modeling_injury_proportion_trainval.py: Runs the best injury proportion model on the test set.
- 
- The directory 'data' contains subdirectories with raw NTSB data, cleaned NTSB data, t-100 data, and model performance data. It also has two files explaining the NTSB data: a codemap of all available variables and detailed definitions of how injuries and aircraft damage are categorized.
- 
- The directory 'deliverables' contains the executive summary, presentation slides, and previous project checkpoints.
- 
- The directory 'jupyter_notebooks' contains notebooks for exploratory data analysis, model testing, and preliminary versions of code that went into the scripts.
- 
 
 ## 📖 Project Overview
 
@@ -159,3 +143,30 @@ While this project provides a strong foundation, there are several directions fo
 * **Deploy as an Interactive Tool:** Create a web-based dashboard that allows stakeholders to explore the data and test "what-if" scenarios using the final model.
 
 * **Add More**
+
+## 📌 Repository Organization
+
+The main scripts are in the top level 
+ - 01_ntsb_table_join.py: Combines all data into a single table, drops data outside the scope of our problem, and does train/validation/test split.
+ - 02_ntsb_data_cleaning.py: Cleans training, validation, and test data.
+ - 03a_modeling_damage.py: Models damage proportions with several ensemble models, tunes hyperparameters via cross-validation, saves best parameters and model performances on train and validation sets to file.
+ - 04a_modeling_injury_proportion_trainval.py: Models injury proportions with several ensemble models, tunes hyperparameters via cross-validation, saves best parameters and model performances on train and validation sets to file.
+ - 04b_modeling_injury_proportion_trainval.py: Runs the best injury proportion model on the test set.
+ 
+'data' directory contents:
+  - Subdirectories with raw NTSB data, cleaned NTSB data, t-100 data
+  - It also has two files explaining the NTSB data: a codemap of all variables in the NTSB database
+  - Detailed definitions of how injuries and aircraft damage are categorized.
+ 
+'results' directory contents:
+  - Parameters of best models obtained from grid search cross-validation
+  - Plots of final model performance
+  - Plots of feature importance in final model
+ 
+'deliverables' directory contents:
+  - Executive summary
+  - Presentation slides
+  - Previous project checkpoints.
+ 
+'jupyter_notebooks' directory:
+ - Notebooks for exploratory data analysis, model testing, and preliminary versions of code that went into the scripts.
