@@ -71,16 +71,11 @@ The project follows these key steps:
 -   **Feature Selection:** A Random Forest model is used to rank feature importance and reduce dimensionality while preserving key predictors.
     
 -   **Model Comparison:** Trained multiple models on the reduced set, including:
-    
+    -   Bagged Decision Trees
     -   Random Forest
-        
     -   Extra Trees
-        
     -   Histogram Gradient Boosting
-        
     -   XGBoost
-        
-    -   Bagged k-NN
         
 -   **Hyperparameter Tuning:** Each model is optimized via cross-validation. Final selection balances performance, efficiency, and interpretability.
 
@@ -103,7 +98,7 @@ The MAE is 17.37, which is pretty low since the number of monthly accidents is u
 
 ## 🚀  Conclusion
 
-
+Taken together, our models all appear to indicate that the features included across the various NTSB datasets are not particularly predictive of the severity of an aircraft incident, nor the proportion of serious and fatal injuries in aircraft involved in accidents. This analysis illustrates the need for more thorough data collection and entry going forward if the NTSB data is to be used to predict aviation accident severity. 
 
 ---
 
