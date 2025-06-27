@@ -18,17 +18,21 @@ import seaborn as sns
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor, ExtraTreesRegressor, BaggingRegressor
 from xgboost import XGBRegressor
+seed = 51841519
 
 ############################################################
 ##             Checking Model Performances                ##
 ############################################################
 
-performances = pd.read_csv('data/regression_performances.csv')
+performances = pd.read_csv('data/model_performance/regression_performances.csv')
 f_performances = performances[performances['target']=='prop_inj_fatal']
 s_performances = performances[performances['target']=='prop_inj_serious']
 
 print(f_performances[f_performances['val_mse'] == f_performances['val_mse'].min()]) # Best "fatal" model
 print(s_performances[s_performances['val_mse'] == s_performances['val_mse'].min()]) # Best "serious" model
+
+# In both cases, the Histogram Gradient Boosting Regressor performs best.
+# For "fatal" proportions, hyperparameter 
 
 ############################################################
 ##                 Predicting Test Set                    ##
@@ -62,7 +66,11 @@ X_test = test[features]
 y_test_f = np.ravel(test[target_f])
 y_test_s = np.ravel(test[target_s])
 
+# Best Fatal Injury Proportions: 
+# Histgrad with params: {'learning_rate': 0.1, 'max_iter': 100, 'max_leaf_nodes': 6}
 
+# Best Serious Injury Proportions: 
+# Histgrad with params: {'learning_rate': 0.01, 'max_iter': 500, 'max_leaf_nodes': 3}
 
 ## Insert ## Modeling Here
 
