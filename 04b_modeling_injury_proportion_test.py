@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.inspection import permutation_importance
 from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor, ExtraTreesRegressor, BaggingRegressor
 from xgboost import XGBRegressor
 seed = 51841519
@@ -66,19 +67,115 @@ X_test = test[features]
 y_test_f = np.ravel(test[target_f])
 y_test_s = np.ravel(test[target_s])
 
+
 # Best Fatal Injury Proportions: 
-# Histgrad with params: {'learning_rate': 0.1, 'max_iter': 100, 'max_leaf_nodes': 6}
-
+## Histgrad with params: {'learning_rate': 0.1, 'max_iter': 100, 'max_leaf_nodes': 6}
 # Best Serious Injury Proportions: 
-# Histgrad with params: {'learning_rate': 0.01, 'max_iter': 500, 'max_leaf_nodes': 3}
+## Histgrad with params: {'learning_rate': 0.01, 'max_iter': 500, 'max_leaf_nodes': 3}
 
-## Insert ## Modeling Here
 
-# Fatal Proportions
-# model.fit(X_train, y_train_f)
+# Re-Fit Histogram Gradient Boosting Regressors with Appropriate Hyperparameters to Training
+
+## Fatal Proportion Model 
+histgrad_f = HistGradientBoostingRegressor(random_state=seed,
+                                         learning_rate=0.1,
+                                         max_iter=100,
+                                         max_leaf_nodes=6)
+histgrad_f.fit(X_train,y_train_f)
+
+## Serious Proportion Model
+histgrad_s = HistGradientBoostingRegressor(random_state=seed,
+                                         learning_rate=0.01,
+                                         max_iter=500,
+                                         max_leaf_nodes=3)
+histgrad_s.fit(X_train,y_train_s)
+
+
+# Predict Test Proportion Data With "Best" Models
+y_pred_f = histgrad_f.predict(X_test)
+y_pred_s = histgrad_s.predict(X_test)
+
+# Naive "Mean" Predictor
+naive_pred_f = [y_train_f.mean()] * len(y_test_f)
+naive_pred_s = [y_train_s.mean()] * len(y_test_s)
+
 
 
 ############################################################
 ##           Model Performance & Important Features       ##
 ############################################################
 
+# Fatal Injuries - Compare Model and Naive Performance
+print(f"HistGrad Performance - MAE:{mean_absolute_error(y_test_f,y_pred_f)},  MSE:{mean_squared_error(y_test_f,y_pred_f)}")
+print(f"Naive Performance - MAE:{mean_absolute_error(y_test_f, naive_pred_f)},  MSE:{mean_squared_error(y_test_f, naive_pred_f)}")
+
+
+# Serious Injuries - Compare Model and Naive Performance
+print(f"HistGrad Performance - MAE:{mean_absolute_error(y_test_s,y_pred_s)},  MSE:{mean_squared_error(y_test_s,y_pred_s)}")
+print(f"Naive Performance - MAE:{mean_absolute_error(y_test_s, naive_pred_s)},  MSE:{mean_squared_error(y_test_s, naive_pred_s)}")
+
+
+############################################################
+
+# Exporting Permutation Importance Plots
+
+## Fatal Injury Proportions
+# Get permutation importance for TRAIN set
+
+perm_train = permutation_importance(histgrad_f, X_train, y_train_f, n_repeats=25, random_state=seed)
+train_importances = pd.DataFrame({
+    'Feature': features,
+    'Importance': perm_train.importances_mean
+}).sort_values(by='Importance', ascending=True)
+
+# Get permutation importance for TEST set
+perm_test = permutation_importance(histgrad_f, X_test, y_test_f, n_repeats=25, random_state=seed)
+test_importances = pd.DataFrame({
+    'Feature': features,
+    'Importance': perm_test.importances_mean
+}).sort_values(by='Importance', ascending=True)
+
+
+# Plotting both sets side by side
+fig, axes = plt.subplots(1, 2, figsize=(14, 8), sharey=True)
+
+axes[0].barh(test_importances['Feature'], test_importances['Importance'], color='steelblue')
+axes[0].set_title('Permutation Importances (Test)')
+axes[0].invert_yaxis()
+
+axes[1].barh(train_importances['Feature'], train_importances['Importance'], color='seagreen')
+axes[1].set_title('Permutation Importances (Train)')
+axes[1].invert_yaxis()
+plt.tight_layout()
+plt.savefig("img/fatal_permutation_importances.png", dpi=300, bbox_inches='tight')
+
+
+## Serious Injury Proportions
+# Get permutation importance for TRAIN set
+
+perm_train = permutation_importance(histgrad_s, X_train, y_train_s, n_repeats=25, random_state=seed)
+train_importances = pd.DataFrame({
+    'Feature': features,
+    'Importance': perm_train.importances_mean
+}).sort_values(by='Importance', ascending=True)
+
+# Get permutation importance for TEST set
+perm_test = permutation_importance(histgrad_s, X_test, y_test_s, n_repeats=25, random_state=seed)
+test_importances = pd.DataFrame({
+    'Feature': features,
+    'Importance': perm_test.importances_mean
+}).sort_values(by='Importance', ascending=True)
+
+
+# Plotting both sets side by side
+fig, axes = plt.subplots(1, 2, figsize=(14, 8), sharey=True)
+
+axes[0].barh(test_importances['Feature'], test_importances['Importance'], color='steelblue')
+axes[0].set_title('Permutation Importances (Test)')
+axes[0].invert_yaxis()
+
+axes[1].barh(train_importances['Feature'], train_importances['Importance'], color='seagreen')
+axes[1].set_title('Permutation Importances (Train)')
+axes[1].invert_yaxis()
+plt.tight_layout()
+plt.savefig("img/serious_permutation_importances.png", dpi=300, bbox_inches='tight')
