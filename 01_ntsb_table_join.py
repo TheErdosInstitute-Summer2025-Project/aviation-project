@@ -9,6 +9,10 @@
 import pandas as pd
 from sklearn.model_selection import StratifiedGroupKFold
 
+############################################################
+##                     READING FILES                      ##
+############################################################
+
 def read_engines(filename):
     '''Read engines data'''
     engines = pd.read_csv(filename,usecols=['ev_id',
@@ -190,6 +194,9 @@ def merge_data(engines, aircraft, injuries, events, carol_data):
 
     return merged
 
+############################################################
+##            TRAIN/VALIDATION/TEST SPLIT                 ##
+############################################################
 
 def stratified_group_split(data, strat_col, group_col):
     """
@@ -226,13 +233,21 @@ def stratified_group_split(data, strat_col, group_col):
         elif i==1:
             data_val = data.iloc[test_index].copy()
 
+    # Until now, the validation set is contained in the train set
+    # This step removes validation data from the train data
     in_val = data_train['ntsb_no'].isin(data_val['ntsb_no'])
     data_train = data_train[~in_val]
 
     return data_train, data_val, data_test
 
 
+
+############################################################
+##                            MAIN                        ##
+############################################################
+
 if __name__ == '__main__':
+    
     ### 1. Read data
     engines = read_engines('data/ntsb_raw/ntsb_engines.csv')
     aircraft = read_aircraft('data/ntsb_raw/ntsb_aircraft.csv')
