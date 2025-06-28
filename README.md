@@ -75,14 +75,14 @@ Injury proportions were used instead of raw counts to normalize across aircraft 
 
 ![](img/heatmap.png)
 
-[Click to view interactive map](https://raw.githack.com/TheErdosInstitute-Summer2025-Project/aviation-project/main/img/heatmap.html)
+[Click to view the heat map](https://raw.githack.com/TheErdosInstitute-Summer2025-Project/aviation-project/main/img/heatmap.html)
 
 
 
 
 ![](img/interactive_heatmap.png)
 
-[Click to view interactive map](https://raw.githack.com/TheErdosInstitute-Summer2025-Project/aviation-project/main/img/interactive_heatmap.html)
+[Click to view the interactive map](https://raw.githack.com/TheErdosInstitute-Summer2025-Project/aviation-project/main/img/interactive_heatmap.html)
 
 ---
 
